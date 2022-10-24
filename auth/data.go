@@ -1,14 +1,14 @@
 package auth
 
-type AuthType int32
+type AuthEnum int32
 
 const (
-	None AuthType = iota
+	None AuthEnum = iota
 	APIKey
 	TwoLeggedOAuth
 	ThreeLeggedOAuth
 )
 
 type Data struct {
-	AuthType AuthType
+	AuthType AuthEnum
 }
