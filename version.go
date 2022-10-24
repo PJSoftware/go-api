@@ -8,7 +8,7 @@ import (
 
 const Version = "0.0.1"
 
-func (a *APIData) Version() {
+func version() {
 	fmt.Printf("goAPI version: %s\n", Version)
 }
 
