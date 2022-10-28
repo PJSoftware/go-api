@@ -1,3 +1,3 @@
-module github.com/pjsoftware/goapi
+module github.com/pjsoftware/go-api
 
 go 1.19

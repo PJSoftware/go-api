@@ -1,4 +1,4 @@
-package goapi
+package api
 
 type APIQuery struct {
 	EndPoint string

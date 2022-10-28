@@ -1,9 +1,9 @@
-package goapi
+package api
 
 import (
 	"fmt"
 
-	"github.com/pjsoftware/goapi/auth"
+	"github.com/pjsoftware/go-api/auth"
 )
 
 type APIData struct {
