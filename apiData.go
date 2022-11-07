@@ -13,22 +13,21 @@ type APIData struct {
 
 func New(rootURL string) *APIData {
 	version()
-	fmt.Printf("API: %s\n", rootURL)
+	fmt.Printf("API root: %s\n", rootURL)
 	rv := APIData{}
 	rv.RootURL = rootURL
 	rv.AuthData.AuthType = auth.None
 	return &rv
 }
 
-func (a *APIData) NewQuery(endPoint string) *APIQuery {
+func (a *APIData) Get(endPoint string) (*QRYResult, error) {
 	qry := &APIQuery{}
-	qry.EndPoint = endPoint
-	return qry
-}
+	qry.EndPoint = a.RootURL + endPoint
+	fmt.Printf("EndPoint for query: %s\n", qry.EndPoint)
+	rv, err := qry.get()
+	if err != nil {
+		return nil, err
+	}
 
-func (a *APIData) Get(endPoint string) *QRYResult {
-	fmt.Printf("EndPoint: %s\n", endPoint)
-	qry := a.NewQuery(endPoint)
-	rv := qry.Get()
-	return rv
+	return rv, nil
 }

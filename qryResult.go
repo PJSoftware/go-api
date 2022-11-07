@@ -1,7 +1,7 @@
 package api
 
 type QRYResult struct {
-	Body string
+	Body []byte
 }
 
 func (r *QRYResult) Parse() string {
