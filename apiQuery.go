@@ -12,7 +12,7 @@ type APIQuery struct {
 
 func (q *APIQuery) get() (*QRYResult, error) {
 	query := http.Client{}
-	fmt.Printf("Get endpoint: %s\n", q.EndPoint)
+	// fmt.Printf("GET endpoint: %s\n", q.EndPoint)
 	req, err := http.NewRequest("GET", q.EndPoint, nil)
 	if err != nil {
 		return nil, fmt.Errorf("err 01: %v", err)
