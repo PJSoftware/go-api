@@ -1,16 +1,19 @@
 package auth
 
-import "fmt"
-
-func Type(authType AuthEnum) {
-	switch authType {
-	case None:
-		fmt.Println("Auth: None")
-	case APIKey:
-		fmt.Println("Auth: API Key")
-	case TwoLeggedOAuth:
-		fmt.Println("Auth: Two-Legged OAuth")
-	case ThreeLeggedOAuth:
-		fmt.Println("Auth: Three-Legged OAuth")
+func (d *Data) Type() string {
+	switch d.authType {
+	case none:
+		return "Auth: None"
+	case apiKey:
+		return "Auth: API Key"
+	case twoLeggedOAuth:
+		return "Auth: Two-Legged OAuth"
+	case threeLeggedOAuth:
+		return "Auth: Three-Legged OAuth"
 	}
+	return ""
+}
+
+func (d *Data) NoAuth() {
+	d.authType = none
 }
