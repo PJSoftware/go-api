@@ -1,17 +1,17 @@
 package api
 
-import (
-	"fmt"
+import "fmt"
 
-	"github.com/pjsoftware/go-api/auth"
-)
+const pkgVersion = "0.1.0"
 
-const Version = "0.0.1"
-
-func version() {
-	fmt.Printf("go-api version: %s\n", Version)
+func (a *APIData) Version() string {
+	return pkgVersion
 }
 
-func (a *APIData) Type() {
-	auth.Type(a.AuthData.AuthType)
+func (a *APIData) Ident() string {
+	rv := fmt.Sprintf("go-api v%s: %s (%s)", pkgVersion, a.rootURL, a.auth.Type())
+	if a.name != "" {
+		rv = a.name + " via " + rv
+	}
+	return rv
 }
