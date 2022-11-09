@@ -6,3 +6,7 @@ func New(rootURL string) *APIData {
 	rv.auth.NoAuth()
 	return &rv
 }
+
+func (a *APIData) SetName(name string) {
+	a.name = name
+}

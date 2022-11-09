@@ -3,6 +3,7 @@ package api
 import "github.com/pjsoftware/go-api/auth"
 
 type APIData struct {
+	name     string
 	rootURL  string
 	auth     auth.Data
 }
