@@ -12,4 +12,4 @@ tasks:
     sources:
       - ./*.go
     cmds:
-      - go test ./*.go
+      - go test ./*.go -v
