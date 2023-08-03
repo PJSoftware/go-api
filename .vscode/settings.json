@@ -3,6 +3,7 @@
     "cmds",
     "go-api",
     "goapi",
+    "initialise",
     "pjsoftware",
     "struct",
     "Unmarshal"
