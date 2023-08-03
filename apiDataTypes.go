@@ -13,19 +13,20 @@ type Endpoint struct {
 	parent *APIData
 }
 
-type reqQuery struct {
+type nameValuePair struct {
 	name string
 	value string
 }
-type reqHeader struct {
-	name string
-	value string
-}
+
+type reqQuery nameValuePair
+type reqHeader nameValuePair
+type reqBody nameValuePair
 
 type Request struct {
 	endPoint *Endpoint
 	queries []reqQuery
 	headers []reqHeader
+	body    []reqBody
 }
 
 type Result struct {
