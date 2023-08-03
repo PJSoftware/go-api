@@ -1,3 +1,11 @@
 {
-  "cSpell.words": ["go-api", "pjsoftware"]
+  "cSpell.words": [
+    "cmds",
+    "go-api",
+    "goapi",
+    "initialise",
+    "pjsoftware",
+    "struct",
+    "Unmarshal"
+  ]
 }
