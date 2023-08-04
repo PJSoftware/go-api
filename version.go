@@ -9,7 +9,7 @@ func (a *APIData) Version() string {
 }
 
 func (a *APIData) Ident() string {
-	rv := fmt.Sprintf("go-api v%s: %s (%s)", pkgVersion, a.rootURL, a.auth.Type())
+	rv := fmt.Sprintf("go-api v%s: %s", pkgVersion, a.rootURL)
 	if a.name != "" {
 		rv = a.name + " via " + rv
 	}
