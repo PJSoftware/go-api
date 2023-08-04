@@ -1,12 +1,14 @@
 package api
 
+import "strings"
+
 const defaultAPIName string = "No Name Specified"
 
 // api.New() returns a new APIData object based on the specified URL. The rootURL
 // string should be the base URL for the API
 func New(rootURL string) *APIData {
 	a := APIData{}
-	a.rootURL = rootURL
+	a.rootURL = strings.TrimSuffix(rootURL, "/")
 	a.name = defaultAPIName
 	return &a
 }
