@@ -66,6 +66,7 @@ func (r *Request) POST() (*Result, error)
     (*Request).POST() processes a POST call to the API
 
 type Result struct {
-	Body []byte
+	Status int
+	Body   string
 }
 
