@@ -77,7 +77,7 @@ func (r *Request) callAPI(method string) (*Result, error) {
 	}
 	
 	if err != nil {
-		return nil, fmt.Errorf("err 01: %v", err)
+		return nil, fmt.Errorf("error creating *http.Request: %v", err)
 	}
 
 	httpQuery := httpReq.URL.Query()
@@ -92,7 +92,7 @@ func (r *Request) callAPI(method string) (*Result, error) {
 
 	response, err := httpClient.Do(httpReq)
 	if err != nil {
-		return nil, fmt.Errorf("err 02: %v", err)
+		return nil, fmt.Errorf("error communicating with api: %v", err)
 	}
 
 	defer response.Body.Close()
@@ -100,12 +100,13 @@ func (r *Request) callAPI(method string) (*Result, error) {
 	if response.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(response.Body)
 		err = fmt.Errorf("[%d] %s", response.StatusCode, string(body))
-		return nil, fmt.Errorf("err 03: %v", err)
+		// TODO: Is this really an error? Should store StatusCode and return it so client software can decide how to handle it!
+		return nil, fmt.Errorf("status not okay: %v", err)
 	}
 
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
-		return nil, fmt.Errorf("err 04: %v", err)
+		return nil, fmt.Errorf("error reading body of response: %v", err)
 	}
 
 	rv := &Result{}
