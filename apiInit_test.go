@@ -22,6 +22,15 @@ func TestNewAPIIdent(t *testing.T) {
 		}
 	})
 
+	t.Run("IdentBlankName", func(t *testing.T) {
+		api.SetName("")
+		exp := fmt.Sprintf("go-api v%s: %s", ver, url)
+		got := api.Ident()
+		if got != exp {
+			t.Errorf("ident 1: got '%s' but expected '%s'", got, exp)
+		}
+	})
+
 	t.Run("IdentWithName", func(t *testing.T) {
 		api.SetName(name)
 		exp := fmt.Sprintf("%s via go-api v%s: %s", name, ver, url)

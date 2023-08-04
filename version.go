@@ -12,8 +12,8 @@ func (a *APIData) Version() string {
 // api.Ident() returns an ident string based on api name, url, and package version
 func (a *APIData) Ident() string {
 	rv := fmt.Sprintf("go-api v%s: %s", pkgVersion, a.rootURL)
-	if a.name != defaultAPIName {
-		rv = a.name + " via " + rv
+	if a.name == defaultAPIName || a.name == "" {
+		return rv
 	}
-	return rv
+	return a.name + " via " + rv
 }
