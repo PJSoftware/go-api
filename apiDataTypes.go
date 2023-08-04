@@ -1,34 +1,38 @@
 package api
 
-import "github.com/pjsoftware/go-api/auth"
-
+// APIData is the main export from go-api; it is generated via api.New()
 type APIData struct {
-	name     string
-	rootURL  string
-	auth     auth.Data
+	name    string
+	rootURL string
 }
 
+// Each Endpoint should be individually managed by the client code. An Endpoint
+// is generated via api.NewEndpoint()
 type Endpoint struct {
 	endpointURL string
-	parent *APIData
+	parent      *APIData
 }
 
-type nameValuePair struct {
-	name string
+// An individual Request is used to communicate with the external API. A Request
+// is generated via (*Endpoint).NewRequest()
+type Request struct {
+	endPoint *Endpoint
+	queries  []reqQuery
+	headers  []reqHeader
+	body     []reqBody
+}
+
+type reqQuery keyValuePair
+type reqHeader keyValuePair
+type reqBody keyValuePair
+
+type keyValuePair struct {
+	key   string
 	value string
 }
 
-type reqQuery nameValuePair
-type reqHeader nameValuePair
-type reqBody nameValuePair
-
-type Request struct {
-	endPoint *Endpoint
-	queries []reqQuery
-	headers []reqHeader
-	body    []reqBody
-}
 
 type Result struct {
-	Body []byte
+	Status int
+	Body   string
 }

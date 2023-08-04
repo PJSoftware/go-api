@@ -1,0 +1,72 @@
+package api // import "github.com/pjsoftware/go-api"
+
+
+TYPES
+
+type APIData struct {
+	// Has unexported fields.
+}
+    APIData is the main export from go-api; it is generated via api.New()
+
+func New(rootURL string) *APIData
+    api.New() returns a new APIData object based on the specified URL. The
+    rootURL string should be the base URL for the API
+
+func (a *APIData) Ident() string
+    api.Ident() returns an ident string based on api name, url, and package
+    version
+
+func (a *APIData) Name() string
+    api.Name() returns the (optional) name of the API
+
+func (a *APIData) NewEndpoint(epURL string) *Endpoint
+    (*APIData).NewEndpoint returns a new *Endpoint object
+
+func (a *APIData) SetName(name string)
+    api.SetName() allows setting the (optional) name of the API for output
+    purposes
+
+func (a *APIData) Version() string
+    api.Version() returns the current package version
+
+type Endpoint struct {
+	// Has unexported fields.
+}
+    Each Endpoint should be individually managed by the client code. An Endpoint
+    is generated via api.NewEndpoint()
+
+func (e *Endpoint) NewRequest() *Request
+    Initialise new empty API request on specified endpoint
+
+func (e *Endpoint) URL() string
+    (*Endpoint).URL() returns the full URL for that endpoint
+
+type Request struct {
+	// Has unexported fields.
+}
+    An individual Request is used to communicate with the external API.
+    A Request is generated via (*Endpoint).NewRequest()
+
+func (r *Request) AddBody(key, value string) *Request
+    Add a line (in "key=value" format) to the Body of a request
+
+func (r *Request) AddHeader(key, value string) *Request
+    Add Header to a request
+
+func (r *Request) AddQuery(key, value string) *Request
+    Add Query (passed in GET URL) to a request
+
+func (r *Request) FormEncoded()
+    FormEncoded adds a predefined (Content-Type) header to a request
+
+func (r *Request) GET() (*Result, error)
+    (*Request).GET() processes a GET call to the API
+
+func (r *Request) POST() (*Result, error)
+    (*Request).POST() processes a POST call to the API
+
+type Result struct {
+	Status int
+	Body   string
+}
+

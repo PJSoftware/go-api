@@ -16,19 +16,19 @@ func (e *Endpoint) NewRequest() *Request {
 }
 
 // Add Query (passed in GET URL) to a request
-func (r *Request) AddQuery(qryName, qryValue string) *Request {
+func (r *Request) AddQuery(key, value string) *Request {
 	query := reqQuery{}
-	query.name = qryName
-	query.value = qryValue
+	query.key = key
+	query.value = value
 	r.queries = append(r.queries, query)
 	return r
 }
 
 // Add Header to a request
-func (r *Request) AddHeader(hdrName, hdrValue string) *Request {
+func (r *Request) AddHeader(key, value string) *Request {
 	header := reqHeader{}
-	header.name = hdrName
-	header.value = hdrValue
+	header.key = key
+	header.value = value
 	r.headers = append(r.headers, header)
 	return r
 }
@@ -38,21 +38,21 @@ func (r *Request) FormEncoded() {
 	r.AddHeader("Content-Type", "application/x-www-form-urlencoded")
 }
 
-// Add a line to the Body of a request
-func (r *Request) AddBody(bodyName, bodyValue string) *Request {
+// Add a line (in "key=value" format) to the Body of a request
+func (r *Request) AddBody(key, value string) *Request {
 	body := reqBody{}
-	body.name = bodyName
-	body.value = bodyValue
+	body.key = key
+	body.value = value
 	r.body = append(r.body, body)
 	return r
 }
 
-// GET() processes a GET call to the API
+// (*Request).GET() processes a GET call to the API
 func (r *Request) GET() (*Result, error) {
 	return r.callAPI("GET")
 }
 
-// POST() processes a POST call to the API
+// (*Request).POST() processes a POST call to the API
 func (r *Request) POST() (*Result, error) {
 	return r.callAPI("POST")
 }
@@ -68,7 +68,7 @@ func (r *Request) callAPI(method string) (*Result, error) {
 	if len(r.body) > 0 {
 		form := url.Values{}
 		for _, body := range r.body {
-			form.Add(body.name, body.value)
+			form.Add(body.key, body.value)
 		}
 		bodyString := strings.NewReader(form.Encode())
 		httpReq, err = http.NewRequest(method, epURL, bodyString)
@@ -77,38 +77,33 @@ func (r *Request) callAPI(method string) (*Result, error) {
 	}
 	
 	if err != nil {
-		return nil, fmt.Errorf("err 01: %v", err)
+		return nil, fmt.Errorf("error creating *http.Request: %v", err)
 	}
 
 	httpQuery := httpReq.URL.Query()
 	for _, qry := range r.queries {
-		httpQuery.Add(qry.name, qry.value)
+		httpQuery.Add(qry.key, qry.value)
 	}
 	httpReq.URL.RawQuery = httpQuery.Encode()
 
 	for _, hdr := range r.headers {
-		httpReq.Header.Set(hdr.name, hdr.value)
+		httpReq.Header.Set(hdr.key, hdr.value)
 	}
 
 	response, err := httpClient.Do(httpReq)
 	if err != nil {
-		return nil, fmt.Errorf("err 02: %v", err)
+		return nil, fmt.Errorf("error communicating with api: %v", err)
 	}
 
 	defer response.Body.Close()
 
-	if response.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(response.Body)
-		err = fmt.Errorf("[%d] %s", response.StatusCode, string(body))
-		return nil, fmt.Errorf("err 03: %v", err)
-	}
-
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
-		return nil, fmt.Errorf("err 04: %v", err)
+		return nil, fmt.Errorf("error reading body of response: %v", err)
 	}
 
 	rv := &Result{}
-	rv.Body = body
+	rv.Status = response.StatusCode
+	rv.Body = string(body)
 	return rv, nil
 }
