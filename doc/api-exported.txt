@@ -1,0 +1,54 @@
+package api // import "github.com/pjsoftware/go-api"
+
+
+TYPES
+
+type APIData struct {
+	// Has unexported fields.
+}
+
+func New(rootURL string) *APIData
+
+func (a *APIData) Ident() string
+
+func (a *APIData) NewEndpoint(epURL string) *Endpoint
+
+func (a *APIData) SetName(name string)
+
+func (a *APIData) Version() string
+
+type Endpoint struct {
+	// Has unexported fields.
+}
+
+func (e *Endpoint) NewRequest() *Request
+    Initialise new empty API request on specified endpoint
+
+func (e *Endpoint) URL() string
+
+type Request struct {
+	// Has unexported fields.
+}
+
+func (r *Request) AddBody(bodyName, bodyValue string) *Request
+    Add a line to the Body of a request
+
+func (r *Request) AddHeader(hdrName, hdrValue string) *Request
+    Add Header to a request
+
+func (r *Request) AddQuery(qryName, qryValue string) *Request
+    Add Query (passed in GET URL) to a request
+
+func (r *Request) FormEncoded()
+    FormEncoded adds a predefined (Content-Type) header to a request
+
+func (r *Request) GET() (*Result, error)
+    GET() processes a GET call to the API
+
+func (r *Request) POST() (*Result, error)
+    POST() processes a POST call to the API
+
+type Result struct {
+	Body []byte
+}
+
