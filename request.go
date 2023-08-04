@@ -97,19 +97,13 @@ func (r *Request) callAPI(method string) (*Result, error) {
 
 	defer response.Body.Close()
 
-	if response.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(response.Body)
-		err = fmt.Errorf("[%d] %s", response.StatusCode, string(body))
-		// TODO: Is this really an error? Should store StatusCode and return it so client software can decide how to handle it!
-		return nil, fmt.Errorf("status not okay: %v", err)
-	}
-
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		return nil, fmt.Errorf("error reading body of response: %v", err)
 	}
 
 	rv := &Result{}
-	rv.Body = body
+	rv.Status = response.StatusCode
+	rv.Body = string(body)
 	return rv, nil
 }

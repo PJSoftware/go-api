@@ -33,5 +33,6 @@ type keyValuePair struct {
 
 
 type Result struct {
-	Body []byte
+	Status int
+	Body   string
 }
