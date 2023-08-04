@@ -7,6 +7,15 @@ tasks:
     cmds:
       - task --list-all
 
+  doc:
+    desc: "Generate go-api documentation"
+    generates:
+      - doc/api-exported.txt
+    sources:
+      - ./*.go
+    cmds:
+      - go doc -all > doc/api-exported.txt
+
   test:
     desc: "Run all go tests"
     sources:
