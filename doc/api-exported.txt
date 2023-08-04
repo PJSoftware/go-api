@@ -22,12 +22,6 @@ func (a *APIData) Name() string
 func (a *APIData) NewEndpoint(epURL string) *Endpoint
     (*APIData).NewEndpoint returns a new *Endpoint object
 
-    Note that if the Root URL is specified with a trailing '/', the endpoint URL
-    should not have a leading '/' -- and vice versa.
-
-    TODO: We need some internal code to ensure consistency in how we store URL
-    values
-
 func (a *APIData) SetName(name string)
     api.SetName() allows setting the (optional) name of the API for output
     purposes
