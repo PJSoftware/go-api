@@ -25,16 +25,14 @@ var cbData chan CallbackData
 var cbServer *http.Server
 var cbState string
 
-// CatchCode() spins up a callback server to catch the AuthCode thrown by the
-// APS Authorize request, and cleans up after itself once the code has been
-// received.
+// CatchCode() spins up a callback server to catch the AuthCode thrown by an
+// Auth0 three-legged authorisation request, and cleans up after itself once the
+// code has been received.
 func CatchCode(url string, state string, cbURL string) (*CallbackData, error) {
-	log.Printf("Request AuthCode from APS server")
+	log.Printf("Request AuthCode from Auth0 server")
 	callbackDone := &sync.WaitGroup{}
 	callbackDone.Add(1)
 
-	fmt.Println("Please accept Authentication request in your browser!")
-	fmt.Println(" - Click 'Allow' to continue:")
 	cbServer := initCallbackServer(cbURL, callbackDone, state)
 
 	browser.OpenURL(url)
@@ -89,7 +87,7 @@ func initCallbackServer(cbURL string, wg *sync.WaitGroup, state string) *http.Se
 }
 
 // AuthCallbackHandler listens at the CallbackEndpoint for the reply from the
-// APS API server containing the AuthCode.
+// API Auth0 server containing the AuthCode.
 func callbackListener(w http.ResponseWriter, r *http.Request) {
 	m, err := url.ParseQuery(r.URL.RawQuery)
 	if err != nil {
@@ -109,14 +107,14 @@ func callbackListener(w http.ResponseWriter, r *http.Request) {
 
 	if len(errorName) > 0 {
 		io.WriteString(w, WWW_ERROR)
-		log.Printf("ERROR: Authorisation failed on APS server")
+		log.Printf("ERROR: Authorisation failed on server")
 		cbData <- CallbackData{"", errorName + ": " + errorDesc}
 		return
 	}
 
 	if len(code) > 0 {
 		io.WriteString(w, WWW_CALLBACK)
-		log.Printf("AuthCode received from APS server")
+		log.Printf("AuthCode received from server")
 		cbData <- CallbackData{code, state}
 	}
 }
