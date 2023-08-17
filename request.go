@@ -109,26 +109,26 @@ func (r *Request) callAPI(method string) (*Result, error) {
 		httpReq.Header.Set(hdr.key, hdr.value)
 	}
 
-	response, err := httpClient.Do(httpReq)
+	res, err := httpClient.Do(httpReq)
 	if err != nil {
 		return nil, fmt.Errorf("error in %s(): communicating with api: %v", method, err)
 	}
 
-	defer response.Body.Close()
+	defer res.Body.Close()
 
-	body, err := io.ReadAll(response.Body)
+	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		return nil, fmt.Errorf("error in %s(): reading body of response: %v", method, err)
 	}
 
 	rv := &Result{}
-	rv.Status = response.StatusCode
+	rv.Status = res.StatusCode
 	rv.Body = string(body)
 
 	if rv.Status != http.StatusOK {
-		return nil, &RequestError{
-									Err: errors.New("status requires attention"),
-									Return: rv,
+		return nil, &StatusError{
+									err: errors.New("status requires attention"),
+									result: rv,
 		}
 	}
 

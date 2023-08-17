@@ -2,15 +2,15 @@ package api
 
 import "fmt"
 
-type RequestError struct {
-	Err    error
-	Return *Result
+type StatusError struct {
+	err    error
+	result *Result
 }
 
-func (r *RequestError) Error() string {
-	return fmt.Sprintf("status %d: error %v", r.Return.Status, r.Err)
+func (s *StatusError) Error() string {
+	return fmt.Sprintf("status %d: error %v", s.result.Status, s.err)
 }
 
-func (r *RequestError) ReturnValue() *Result {
-	return r.Return
+func (s *StatusError) ReturnValue() *Result {
+	return s.result
 }
