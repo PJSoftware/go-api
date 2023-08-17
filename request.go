@@ -1,6 +1,7 @@
 package api
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -95,7 +96,7 @@ func (r *Request) callAPI(method string) (*Result, error) {
 	}
 	
 	if err != nil {
-		return nil, fmt.Errorf("error creating *http.Request: %v", err)
+		return nil, fmt.Errorf("error in %s(): creating *http.Request: %v", method, err)
 	}
 
 	httpQuery := httpReq.URL.Query()
@@ -110,18 +111,26 @@ func (r *Request) callAPI(method string) (*Result, error) {
 
 	response, err := httpClient.Do(httpReq)
 	if err != nil {
-		return nil, fmt.Errorf("error communicating with api: %v", err)
+		return nil, fmt.Errorf("error in %s(): communicating with api: %v", method, err)
 	}
 
 	defer response.Body.Close()
 
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
-		return nil, fmt.Errorf("error reading body of response: %v", err)
+		return nil, fmt.Errorf("error in %s(): reading body of response: %v", method, err)
 	}
 
 	rv := &Result{}
 	rv.Status = response.StatusCode
 	rv.Body = string(body)
+
+	if rv.Status != http.StatusOK {
+		return nil, &RequestError{
+									Err: errors.New("status requires attention"),
+									Return: rv,
+		}
+	}
+
 	return rv, nil
 }

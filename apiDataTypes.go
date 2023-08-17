@@ -31,7 +31,6 @@ type keyValuePair struct {
 	value string
 }
 
-
 type Result struct {
 	Status int
 	Body   string
