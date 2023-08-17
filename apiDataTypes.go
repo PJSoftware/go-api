@@ -31,7 +31,7 @@ type keyValuePair struct {
 	value string
 }
 
-type Result struct {
+type Response struct {
 	Status int
 	Body   string
 }

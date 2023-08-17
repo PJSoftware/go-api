@@ -67,17 +67,17 @@ func (r *Request) RawQueryURL() (string, error) {
 }
 
 // (*Request).GET() processes a GET call to the API
-func (r *Request) GET() (*Result, error) {
+func (r *Request) GET() (*Response, error) {
 	return r.callAPI("GET")
 }
 
 // (*Request).POST() processes a POST call to the API
-func (r *Request) POST() (*Result, error) {
+func (r *Request) POST() (*Response, error) {
 	return r.callAPI("POST")
 }
 
 // callAPI() handles the call using the specified method
-func (r *Request) callAPI(method string) (*Result, error) {
+func (r *Request) callAPI(method string) (*Response, error) {
 	var httpReq *http.Request
 	var err error
 	
@@ -121,14 +121,14 @@ func (r *Request) callAPI(method string) (*Result, error) {
 		return nil, fmt.Errorf("error in %s(): reading body of response: %v", method, err)
 	}
 
-	rv := &Result{}
+	rv := &Response{}
 	rv.Status = res.StatusCode
 	rv.Body = string(body)
 
 	if rv.Status != http.StatusOK {
 		return nil, &StatusError{
 									err: errors.New("status requires attention"),
-									result: rv,
+									res: rv,
 		}
 	}
 
