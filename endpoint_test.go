@@ -47,4 +47,12 @@ func TestNewEndpoint(t *testing.T) {
 		}
 	})
 
+	t.Run("EndpointURL Drop Root Prefix", func(t *testing.T) {
+		api := goapi.New(root)
+		ep := api.NewEndpoint(root + "/" + epURL)
+		got := ep.URL()
+		if got != exp {
+			t.Errorf("endpoint url: got '%s' but expected '%s'", got, exp)
+		}
+	})
 }

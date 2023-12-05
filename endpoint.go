@@ -5,7 +5,9 @@ import "strings"
 // (*APIData).NewEndpoint returns a new *Endpoint object
 func (a *APIData) NewEndpoint(epURL string) *Endpoint {
 	ep := &Endpoint{}
-	ep.endpointURL = strings.TrimPrefix(epURL, "/")
+	epURL = strings.TrimPrefix(epURL, a.rootURL)
+	epURL = strings.TrimPrefix(epURL, "/")
+	ep.endpointURL = epURL
 	ep.parent = a
 
 	return ep
