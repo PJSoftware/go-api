@@ -1,7 +1,6 @@
 package api
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -126,10 +125,7 @@ func (r *Request) callAPI(method string) (*Response, error) {
 	rv.Body = string(body)
 
 	if rv.Status != http.StatusOK {
-		return nil, &StatusError{
-									err: errors.New("status requires attention"),
-									res: rv,
-		}
+		return nil, newQueryError(rv)
 	}
 
 	return rv, nil
