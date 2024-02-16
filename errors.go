@@ -33,8 +33,8 @@ func newQueryError(res *Response) *QueryError {
 	case code <= 499: err = ErrClient
 	case code <= 599: err = ErrServer
 	default: err = ErrUnsupportedRange
-
 	}
+	
 	if code > 100 && code <= 199 {
 		err = ErrInformation
 	}
