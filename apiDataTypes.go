@@ -19,7 +19,9 @@ type Request struct {
 	endPoint *Endpoint
 	queries  []reqQuery
 	headers  []reqHeader
-	body     []reqBody
+	bodyKV   []reqBody
+	bodyTXT  string
+	hasBody  bool
 }
 
 type reqQuery keyValuePair

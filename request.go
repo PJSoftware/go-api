@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -39,11 +40,26 @@ func (r *Request) FormEncoded() {
 }
 
 // Add a line (in "key=value" format) to the Body of a request
-func (r *Request) AddBody(key, value string) *Request {
+func (r *Request) AddBodyKV(key, value string) *Request {
 	body := reqBody{}
 	body.key = key
 	body.value = value
-	r.body = append(r.body, body)
+	r.bodyKV = append(r.bodyKV, body)
+	r.hasBody = true
+	return r
+}
+
+// Set the body of the request to a block of JSON-formatted text
+//
+// TODO: implement proper error handling here
+func (r *Request) SetBodyJSON(v any) *Request {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return nil
+	}
+
+	r.bodyTXT = string(b)
+	r.hasBody = true
 	return r
 }
 
@@ -83,15 +99,24 @@ func (r *Request) callAPI(method string) (*Response, error) {
 	epURL := r.endPoint.URL()
 	httpClient := http.Client{}
 
-	if len(r.body) > 0 {
-		form := url.Values{}
-		for _, body := range r.body {
-			form.Add(body.key, body.value)
+	if r.hasBody {
+		var bodyString *strings.Reader
+		if len(r.bodyTXT) > 0 {
+			bodyString = strings.NewReader(r.bodyTXT)
+
+		} else if len(r.bodyKV) > 0 {
+			form := url.Values{}
+			for _, body := range r.bodyKV {
+				form.Add(body.key, body.value)
+			}
+			bodyString = strings.NewReader(form.Encode())
 		}
-		bodyString := strings.NewReader(form.Encode())
+
 		httpReq, err = http.NewRequest(method, epURL, bodyString)
+
 	} else {
 		httpReq, err = http.NewRequest(method, epURL, nil)
+
 	}
 	
 	if err != nil {
@@ -125,7 +150,7 @@ func (r *Request) callAPI(method string) (*Response, error) {
 	rv.Body = string(body)
 
 	if rv.Status != http.StatusOK {
-		return nil, newQueryError(rv)
+		return rv, newQueryError(rv)
 	}
 
 	return rv, nil

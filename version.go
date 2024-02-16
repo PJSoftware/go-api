@@ -2,7 +2,7 @@ package api
 
 import "fmt"
 
-const pkgVersion = "0.3.0"
+const pkgVersion = "0.4.0"
 
 // api.Version() returns the current package version
 func (a *APIData) Version() string {
