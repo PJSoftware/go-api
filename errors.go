@@ -28,7 +28,7 @@ func newQueryError(res *Response) *QueryError {
 	switch {
 	case code <= 99: err = ErrUnsupportedRange
 	case code <= 199: err = ErrInformation
-	case code <= 299: err = ErrSuccess
+	case code <= 299: return nil // err = ErrSuccess
 	case code <= 399: err = ErrRedirection
 	case code <= 499: err = ErrClient
 	case code <= 599: err = ErrServer
