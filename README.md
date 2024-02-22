@@ -38,13 +38,45 @@ data := &MyDataStruct{}
 json.Unmarshal(r.Body, data)
 ```
 
-## Simple Usage: ThreeLegged OAuth
+## Error Handling
+
+To detect errors, can use either of these two approaches:
+
+This library takes the approach that for any HTTP Status code other than 200 ("Success") it will return a QueryError, a custom error type. For status codes in the 200-299 range, the error name is `Success` (per the first example below.) For other codes, the error will be as follows:
 
 ```go
-api := goapi.New(apiURL)
-api.AuthThreeLegged(id, secret, authURL, callbackURL)
-
-ep  := api.NewEndpoint(endpointURL)
-req := ep.NewRequest().AddHeader(hdrName,hdrValue)
-r := req.GET()
+case code <= 99: err = ErrUnsupportedRange
+case code <= 199: err = ErrInformation
+case code <= 299: err = Success
+case code <= 399: err = ErrRedirection
+case code <= 499: err = ErrClient
+case code <= 599: err = ErrServer
+default: err = ErrUnsupportedRange
 ```
+
+The reason for returning all non-200 results as errors is to force the client code to handle them.
+
+### Examples of Error Detection
+
+```go
+// Check for error type
+if errors.Is(err, goapi.Success) {
+  fmt.Printf("Success!");
+}
+```
+
+or
+
+```go
+// Do something with QueryError object
+var qErr *goapi.QueryError
+if errors.As(err, &qErr) {
+  fmt.Printf("Error status := %d", qErr.Status())
+}
+```
+
+`QueryError` has the following methods:
+
+- `Unwrap()` returns the underlying error
+- `Status()` returns the http status code
+- `Response()` returns the original HTTP response.
