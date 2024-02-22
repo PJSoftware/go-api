@@ -9,7 +9,7 @@ import (
 var (
 	ErrUnsupportedRange = errors.New("unsupported status code")
 	ErrInformation = errors.New("for information")
-	ErrSuccess = errors.New("success but requires attention")
+	Success = errors.New("success but requires attention")
 	ErrRedirection = errors.New("redirection response")
 	ErrClient = errors.New("client error")
 	ErrServer = errors.New("server error")
@@ -28,16 +28,13 @@ func newQueryError(res *Response) *QueryError {
 	switch {
 	case code <= 99: err = ErrUnsupportedRange
 	case code <= 199: err = ErrInformation
-	case code <= 299: err = ErrSuccess
+	case code <= 299: err = Success
 	case code <= 399: err = ErrRedirection
 	case code <= 499: err = ErrClient
 	case code <= 599: err = ErrServer
 	default: err = ErrUnsupportedRange
 	}
-	
-	if code > 100 && code <= 199 {
-		err = ErrInformation
-	}
+
 	return &QueryError{
 		res: res,
 		err: err,

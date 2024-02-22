@@ -47,8 +47,8 @@ func postJSON(api *goapi.APIData) {
 
 	res, err := req.POST()
 	if err != nil {
-		if errors.Is(err, goapi.ErrSuccess) {
-			fmt.Printf("ErrSuccess returned: %v\n", err)
+		if errors.Is(err, goapi.Success) {
+			fmt.Printf("Success returned: %v\n", err)
 		} else {
 			log.Fatalf("POST error: %v\n", err)
 		}
