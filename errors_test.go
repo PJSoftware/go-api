@@ -106,7 +106,7 @@ func TestErrors(t *testing.T) {
 		for _, code := range allKnownCodes200 {
 			res := &Response{ Body: "", Status: code }
 			err := newQueryError(res)
-			if !errors.Is(err, ErrSuccess) {
+			if !errors.Is(err, Success) {
 				t.Errorf("for code %d, expected ErrSuccess, got %v", code, err)
 			}
 		}
