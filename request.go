@@ -70,7 +70,7 @@ func (r *Request) RawQueryURL() (string, error) {
 	epURL := r.endPoint.URL()
 	httpReq, err := http.NewRequest("GET", epURL, nil)
 	if err != nil {
-		return "", err
+		return "", newPackageError(err)
 	}
 
 	httpQuery := httpReq.URL.Query()
@@ -95,7 +95,7 @@ func (r *Request) POST() (*Response, error) {
 func (r *Request) callAPI(method string) (*Response, error) {
 	var httpReq *http.Request
 	var err error
-	
+
 	epURL := r.endPoint.URL()
 	httpClient := http.Client{}
 
@@ -118,9 +118,9 @@ func (r *Request) callAPI(method string) (*Response, error) {
 		httpReq, err = http.NewRequest(method, epURL, nil)
 
 	}
-	
+
 	if err != nil {
-		return nil, fmt.Errorf("error in %s(): creating *http.Request: %v", method, err)
+		return nil, newPackageError(fmt.Errorf("error in %s(): creating *http.Request: %v", method, err))
 	}
 
 	httpQuery := httpReq.URL.Query()
@@ -135,14 +135,14 @@ func (r *Request) callAPI(method string) (*Response, error) {
 
 	res, err := httpClient.Do(httpReq)
 	if err != nil {
-		return nil, fmt.Errorf("error in %s(): communicating with api: %v", method, err)
+		return nil, newPackageError(fmt.Errorf("error in %s(): communicating with api: %v", method, err))
 	}
 
 	defer res.Body.Close()
 
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
-		return nil, fmt.Errorf("error in %s(): reading body of response: %v", method, err)
+		return nil, newPackageError(fmt.Errorf("error in %s(): reading body of response: %v", method, err))
 	}
 
 	rv := &Response{}

@@ -21,7 +21,7 @@ func main() {
 }
 
 func getJSON(api *goapi.APIData) {
-	ep  := api.NewEndpoint("json/1")
+	ep := api.NewEndpoint("json/1")
 
 	fmt.Printf("EP: %s\n", ep.URL())
 	req := ep.NewRequest()
@@ -35,7 +35,7 @@ func getJSON(api *goapi.APIData) {
 }
 
 func postJSON(api *goapi.APIData) {
-	ep  := api.NewEndpoint("json")
+	ep := api.NewEndpoint("json")
 
 	obj := &Object{}
 	obj.ID = 12345
@@ -47,7 +47,7 @@ func postJSON(api *goapi.APIData) {
 
 	res, err := req.POST()
 	if err != nil {
-		if errors.Is(err, goapi.Success) {
+		if errors.Is(err, goapi.ErrSuccess) {
 			fmt.Printf("Success returned: %v\n", err)
 		} else {
 			log.Fatalf("POST error: %v\n", err)
