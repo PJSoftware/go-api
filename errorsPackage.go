@@ -1,21 +1,10 @@
 package api
 
-import (
-	"fmt"
-)
-
+// PackageError is essentially just a "decorator"-style error
 type PackageError struct {
-	err error
-}
-
-func newPackageError(err error) *PackageError {
-	return &PackageError{err: err}
+	error
 }
 
 func (pe *PackageError) Unwrap() error {
-	return pe.err
-}
-
-func (pe *PackageError) Error() string {
-	return fmt.Sprintf("%v", pe.err)
+	return pe.error
 }
