@@ -4,6 +4,7 @@ package api
 type APIData struct {
 	name    string
 	rootURL string
+	// options Options
 }
 
 // Each Endpoint should be individually managed by the client code. An Endpoint
@@ -22,6 +23,7 @@ type Request struct {
 	bodyKV   []reqBody
 	bodyTXT  string
 	hasBody  bool
+	options  ReqOptions
 }
 
 type reqQuery keyValuePair
