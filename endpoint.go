@@ -2,6 +2,13 @@ package api
 
 import "strings"
 
+// Each Endpoint should be individually managed by the client code. An Endpoint
+// is generated via api.NewEndpoint()
+type Endpoint struct {
+	endpointURL string
+	parent      *APIData
+}
+
 // (*APIData).NewEndpoint returns a new *Endpoint object
 func (a *APIData) NewEndpoint(epURL string) *Endpoint {
 	ep := &Endpoint{}

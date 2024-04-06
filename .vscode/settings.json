@@ -11,5 +11,6 @@
     "struct",
     "unexported",
     "Unmarshal"
-  ]
+  ],
+  "asciidoc.antora.enableAntoraSupport": true
 }

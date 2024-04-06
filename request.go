@@ -9,6 +9,32 @@ import (
 	"strings"
 )
 
+// An individual Request is used to communicate with the external API. A Request
+// is generated via (*Endpoint).NewRequest()
+type Request struct {
+	endPoint *Endpoint
+	queries  []reqQuery
+	headers  []reqHeader
+	bodyKV   []reqBody
+	bodyTXT  string
+	hasBody  bool
+	options  ReqOptions
+}
+
+type reqQuery keyValuePair
+type reqHeader keyValuePair
+type reqBody keyValuePair
+
+type keyValuePair struct {
+	key   string
+	value string
+}
+
+type Response struct {
+	Status int
+	Body   string
+}
+
 // Initialise new empty API request on specified endpoint
 func (e *Endpoint) NewRequest() *Request {
 	req := &Request{}
