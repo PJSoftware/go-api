@@ -9,11 +9,37 @@ import (
 	"strings"
 )
 
+// An individual Request is used to communicate with the external API. A Request
+// is generated via (*Endpoint).NewRequest()
+type Request struct {
+	endPoint *Endpoint
+	queries  []reqQuery
+	headers  []reqHeader
+	bodyKV   []reqBody
+	bodyTXT  string
+	hasBody  bool
+	options  ReqOptions
+}
+
+type reqQuery keyValuePair
+type reqHeader keyValuePair
+type reqBody keyValuePair
+
+type keyValuePair struct {
+	key   string
+	value string
+}
+
+type Response struct {
+	Status int
+	Body   string
+}
+
 // Initialise new empty API request on specified endpoint
 func (e *Endpoint) NewRequest() *Request {
-	req := &Request{}
-	req.endPoint = e
-	return req
+	return &Request{
+		endPoint: e,
+	}
 }
 
 // Add Query (passed in GET URL) to a request
@@ -91,19 +117,12 @@ func (r *Request) POST() (*Response, error) {
 	return r.callAPI("POST")
 }
 
-// callAPI() handles the call using the specified method
-func (r *Request) callAPI(method string) (*Response, error) {
-	var httpReq *http.Request
-	var err error
-
-	epURL := r.endPoint.URL()
-	httpClient := http.Client{}
-
+func (r *Request) genHTTPReq(method, epURL string) (*http.Request, error) {
 	if r.hasBody {
+
 		var bodyString *strings.Reader
 		if len(r.bodyTXT) > 0 {
 			bodyString = strings.NewReader(r.bodyTXT)
-
 		} else if len(r.bodyKV) > 0 {
 			form := url.Values{}
 			for _, body := range r.bodyKV {
@@ -111,18 +130,13 @@ func (r *Request) callAPI(method string) (*Response, error) {
 			}
 			bodyString = strings.NewReader(form.Encode())
 		}
-
-		httpReq, err = http.NewRequest(method, epURL, bodyString)
-
+		return http.NewRequest(method, epURL, bodyString)
 	} else {
-		httpReq, err = http.NewRequest(method, epURL, nil)
-
+		return http.NewRequest(method, epURL, nil)
 	}
+}
 
-	if err != nil {
-		return nil, &PackageError{fmt.Errorf("error in %s(): creating *http.Request: %w", method, err)}
-	}
-
+func (r *Request) populateHTTPRequest(httpReq *http.Request) {
 	httpQuery := httpReq.URL.Query()
 	for _, qry := range r.queries {
 		httpQuery.Add(qry.key, qry.value)
@@ -132,12 +146,22 @@ func (r *Request) callAPI(method string) (*Response, error) {
 	for _, hdr := range r.headers {
 		httpReq.Header.Set(hdr.key, hdr.value)
 	}
+}
 
+// callAPI() handles the call using the specified method
+func (r *Request) callAPI(method string) (*Response, error) {
+	epURL := r.endPoint.URL()
+	httpClient := http.Client{}
+	httpReq, err := r.genHTTPReq(method, epURL)
+	if err != nil {
+		return nil, &PackageError{fmt.Errorf("error in %s(): creating *http.Request: %w", method, err)}
+	}
+
+	r.populateHTTPRequest(httpReq)
 	res, err := httpClient.Do(httpReq)
 	if err != nil {
 		return nil, &PackageError{fmt.Errorf("error in %s(): communicating with api: %w", method, err)}
 	}
-
 	defer res.Body.Close()
 
 	body, err := io.ReadAll(res.Body)
@@ -145,13 +169,17 @@ func (r *Request) callAPI(method string) (*Response, error) {
 		return nil, &PackageError{fmt.Errorf("error in %s(): reading body of response: %w", method, err)}
 	}
 
-	rv := &Response{}
-	rv.Status = res.StatusCode
-	rv.Body = string(body)
-
+	rv := newResponse(res.StatusCode, string(body))
 	if rv.Status != http.StatusOK {
 		return rv, newQueryError(rv)
 	}
 
 	return rv, nil
+}
+
+func newResponse(status int, body string) *Response {
+	return &Response{
+		Status: status,
+		Body:   body,
+	}
 }

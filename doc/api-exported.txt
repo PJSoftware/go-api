@@ -4,12 +4,12 @@ package api // import "github.com/pjsoftware/go-api"
 VARIABLES
 
 var (
-	ErrUnsupportedRange = errors.New("unsupported status code")
-	ErrInformation      = errors.New("for information")
-	ErrSuccess          = errors.New("success but requires attention")
-	ErrRedirection      = errors.New("redirection response")
-	ErrClient           = errors.New("client error")
-	ErrServer           = errors.New("server error")
+	ErrUnsupported = errors.New("unsupported status code")
+	ErrInformation = errors.New("for information")
+	ErrSuccess     = errors.New("success but requires attention")
+	ErrRedirection = errors.New("redirection response")
+	ErrClient      = errors.New("client error")
+	ErrServer      = errors.New("server error")
 )
 
 TYPES
@@ -27,15 +27,8 @@ func (a *APIData) Ident() string
     api.Ident() returns an ident string based on api name, url, and package
     version
 
-func (a *APIData) Name() string
-    api.Name() returns the (optional) name of the API
-
 func (a *APIData) NewEndpoint(epURL string) *Endpoint
     (*APIData).NewEndpoint returns a new *Endpoint object
-
-func (a *APIData) SetName(name string)
-    api.SetName() allows setting the (optional) name of the API for output
-    purposes
 
 func (a *APIData) Version() string
     api.Version() returns the current package version
@@ -52,17 +45,35 @@ func (e *Endpoint) NewRequest() *Request
 func (e *Endpoint) URL() string
     (*Endpoint).URL() returns the full URL for that endpoint
 
+type PackageError struct {
+	// Has unexported fields.
+}
+    PackageError is essentially just a "decorator"-style error
+
+func (pe *PackageError) Unwrap() error
+
 type QueryError struct {
 	// Has unexported fields.
 }
 
-func (s *QueryError) Error() string
+func (qe *QueryError) Error() string
 
-func (s *QueryError) Response() *Response
+func (qe *QueryError) Response() *Response
 
-func (s *QueryError) Status() int
+func (qe *QueryError) Status() int
 
-func (s *QueryError) Unwrap() error
+func (qe *QueryError) Unwrap() error
+
+type ReqOptFunc func(*Request)
+
+func RateLimit(callsPerMinute int) ReqOptFunc
+    Req Configuration: Set Rate Limit to specified number of calls per minute
+
+    TODO: Rate limiting currently not implemented; added to support client calls
+
+type ReqOptions struct {
+	// Has unexported fields.
+}
 
 type Request struct {
 	// Has unexported fields.
@@ -78,6 +89,8 @@ func (r *Request) AddHeader(key, value string) *Request
 
 func (r *Request) AddQuery(key, value string) *Request
     Add Query (passed in GET URL) to a request
+
+func (r *Request) Configure(opts ...ReqOptFunc)
 
 func (r *Request) FormEncoded()
     FormEncoded adds a predefined (Content-Type) header to a request
