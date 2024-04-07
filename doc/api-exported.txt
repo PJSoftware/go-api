@@ -1,6 +1,10 @@
 package api // import "github.com/pjsoftware/go-api"
 
 
+CONSTANTS
+
+const Version = "v0.4.7"
+
 VARIABLES
 
 var (
@@ -15,6 +19,7 @@ var (
 TYPES
 
 type APIData struct {
+	Options *Options
 	// Has unexported fields.
 }
     APIData is the main export from go-api; it is generated via api.New()
@@ -45,6 +50,30 @@ func (e *Endpoint) NewRequest() *Request
 func (e *Endpoint) URL() string
     (*Endpoint).URL() returns the full URL for that endpoint
 
+type OptFunc func(*Options)
+
+func RateLimit(callsPerMinute int) OptFunc
+    Option: Set Rate Limit to specified number of calls per minute
+
+    TODO: Rate limiting currently not implemented; added to support client calls
+
+func Timeout(maxMillisecondsElapsed int) OptFunc
+    Option: Set Timeout in milliseconds. Any API calls which take longer than
+    the specified timeout will be cancelled (and return a timeout error)
+
+    TODO: Timeout currently not implemented
+
+type Options struct {
+	// Has unexported fields.
+}
+
+func (o *Options) Set(opts ...OptFunc)
+    Set API options. Can be set on the *APIData object (via api.Options.Set()),
+    in which case they provide the default value for each subsequent call -- or
+    they can be set on individual *Requests (via req.Options.Set())
+
+    Available options: RateLimit(n), Timeout(n)
+
 type PackageError struct {
 	// Has unexported fields.
 }
@@ -64,18 +93,8 @@ func (qe *QueryError) Status() int
 
 func (qe *QueryError) Unwrap() error
 
-type ReqOptFunc func(*Request)
-
-func RateLimit(callsPerMinute int) ReqOptFunc
-    Req Configuration: Set Rate Limit to specified number of calls per minute
-
-    TODO: Rate limiting currently not implemented; added to support client calls
-
-type ReqOptions struct {
-	// Has unexported fields.
-}
-
 type Request struct {
+	Options *Options
 	// Has unexported fields.
 }
     An individual Request is used to communicate with the external API.
@@ -89,8 +108,6 @@ func (r *Request) AddHeader(key, value string) *Request
 
 func (r *Request) AddQuery(key, value string) *Request
     Add Query (passed in GET URL) to a request
-
-func (r *Request) Configure(opts ...ReqOptFunc)
 
 func (r *Request) FormEncoded()
     FormEncoded adds a predefined (Content-Type) header to a request

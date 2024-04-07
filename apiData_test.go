@@ -14,7 +14,7 @@ func TestNewAPIIdent(t *testing.T) {
 	ver := api.Version()
 
 	t.Run("Ident", func(t *testing.T) {
-		exp := fmt.Sprintf("go-api v%s: %s", ver, url)
+		exp := fmt.Sprintf("go-api %s: %s", ver, url)
 		got := api.Ident()
 		if got != exp {
 			t.Errorf("ident 1: got '%s' but expected '%s'", got, exp)

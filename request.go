@@ -1,12 +1,14 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 )
 
 // An individual Request is used to communicate with the external API. A Request
@@ -18,7 +20,7 @@ type Request struct {
 	bodyKV   []reqBody
 	bodyTXT  string
 	hasBody  bool
-	options  ReqOptions
+	Options  *Options
 }
 
 type reqQuery keyValuePair
@@ -30,15 +32,12 @@ type keyValuePair struct {
 	value string
 }
 
-type Response struct {
-	Status int
-	Body   string
-}
-
 // Initialise new empty API request on specified endpoint
 func (e *Endpoint) NewRequest() *Request {
+	opt := *e.parent.Options
 	return &Request{
 		endPoint: e,
+		Options: &opt,
 	}
 }
 
@@ -109,43 +108,50 @@ func (r *Request) RawQueryURL() (string, error) {
 
 // (*Request).GET() processes a GET call to the API
 func (r *Request) GET() (*Response, error) {
-	return r.callAPI("GET")
+	return r.callAPIWithTimeout("GET")
 }
 
 // (*Request).POST() processes a POST call to the API
 func (r *Request) POST() (*Response, error) {
-	return r.callAPI("POST")
+	return r.callAPIWithTimeout("POST")
 }
 
-func (r *Request) genHTTPReq(method, epURL string) (*http.Request, error) {
-	if r.hasBody {
+type apiCallReturn struct {
+	r *Response
+	e error
+}
 
-		var bodyString *strings.Reader
-		if len(r.bodyTXT) > 0 {
-			bodyString = strings.NewReader(r.bodyTXT)
-		} else if len(r.bodyKV) > 0 {
-			form := url.Values{}
-			for _, body := range r.bodyKV {
-				form.Add(body.key, body.value)
-			}
-			bodyString = strings.NewReader(form.Encode())
+// callAPIWithTimeout() handles the call using the specified method, optionally
+// implementing timeout
+func (r *Request) callAPIWithTimeout(method string) (*Response, error) {
+	if r.Options.timeout <= 0 {
+		return r.callAPI(method)
+	}
+ 
+	duration := time.Millisecond * time.Duration(r.Options.timeout)
+	ctx, cancel := context.WithTimeout(context.Background(), duration)
+	defer cancel()
+
+	// call r.CallAPI via a goroutine
+	ch := make(chan apiCallReturn)
+	go func() {
+		res, err := r.callAPI(method)
+		ch <- apiCallReturn{
+			r: res,
+			e: err,
 		}
-		return http.NewRequest(method, epURL, bodyString)
-	} else {
-		return http.NewRequest(method, epURL, nil)
-	}
-}
+	}()
 
-func (r *Request) populateHTTPRequest(httpReq *http.Request) {
-	httpQuery := httpReq.URL.Query()
-	for _, qry := range r.queries {
-		httpQuery.Add(qry.key, qry.value)
+	// wait for a value returning from our goroutine (or from ctx)
+	for {
+		select {
+		case <- ctx.Done():
+			return nil, ErrTimeout
+		case resp := <- ch:
+			return resp.r, &PackageError{resp.e}
+		}
 	}
-	httpReq.URL.RawQuery = httpQuery.Encode()
 
-	for _, hdr := range r.headers {
-		httpReq.Header.Set(hdr.key, hdr.value)
-	}
 }
 
 // callAPI() handles the call using the specified method
@@ -177,9 +183,33 @@ func (r *Request) callAPI(method string) (*Response, error) {
 	return rv, nil
 }
 
-func newResponse(status int, body string) *Response {
-	return &Response{
-		Status: status,
-		Body:   body,
+func (r *Request) genHTTPReq(method, epURL string) (*http.Request, error) {
+	if r.hasBody {
+
+		var bodyString *strings.Reader
+		if len(r.bodyTXT) > 0 {
+			bodyString = strings.NewReader(r.bodyTXT)
+		} else if len(r.bodyKV) > 0 {
+			form := url.Values{}
+			for _, body := range r.bodyKV {
+				form.Add(body.key, body.value)
+			}
+			bodyString = strings.NewReader(form.Encode())
+		}
+		return http.NewRequest(method, epURL, bodyString)
+	} else {
+		return http.NewRequest(method, epURL, nil)
+	}
+}
+
+func (r *Request) populateHTTPRequest(httpReq *http.Request) {
+	httpQuery := httpReq.URL.Query()
+	for _, qry := range r.queries {
+		httpQuery.Add(qry.key, qry.value)
+	}
+	httpReq.URL.RawQuery = httpQuery.Encode()
+
+	for _, hdr := range r.headers {
+		httpReq.Header.Set(hdr.key, hdr.value)
 	}
 }

@@ -5,6 +5,7 @@ import "strings"
 // APIData is the main export from go-api; it is generated via api.New()
 type APIData struct {
 	rootURL string
+	Options *Options
 }
 
 // api.New() returns a new APIData object based on the specified URL. The rootURL
@@ -12,5 +13,6 @@ type APIData struct {
 func New(rootURL string) *APIData {
 	return &APIData{
 		rootURL: strings.TrimSuffix(rootURL, "/"),
+		Options: &Options{},
 	}
 }
