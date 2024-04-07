@@ -30,11 +30,6 @@ type keyValuePair struct {
 	value string
 }
 
-type Response struct {
-	Status int
-	Body   string
-}
-
 // Initialise new empty API request on specified endpoint
 func (e *Endpoint) NewRequest() *Request {
 	opt := *e.parent.Options
@@ -119,36 +114,6 @@ func (r *Request) POST() (*Response, error) {
 	return r.callAPI("POST")
 }
 
-func (r *Request) genHTTPReq(method, epURL string) (*http.Request, error) {
-	if r.hasBody {
-
-		var bodyString *strings.Reader
-		if len(r.bodyTXT) > 0 {
-			bodyString = strings.NewReader(r.bodyTXT)
-		} else if len(r.bodyKV) > 0 {
-			form := url.Values{}
-			for _, body := range r.bodyKV {
-				form.Add(body.key, body.value)
-			}
-			bodyString = strings.NewReader(form.Encode())
-		}
-		return http.NewRequest(method, epURL, bodyString)
-	} else {
-		return http.NewRequest(method, epURL, nil)
-	}
-}
-
-func (r *Request) populateHTTPRequest(httpReq *http.Request) {
-	httpQuery := httpReq.URL.Query()
-	for _, qry := range r.queries {
-		httpQuery.Add(qry.key, qry.value)
-	}
-	httpReq.URL.RawQuery = httpQuery.Encode()
-
-	for _, hdr := range r.headers {
-		httpReq.Header.Set(hdr.key, hdr.value)
-	}
-}
 
 // callAPI() handles the call using the specified method
 func (r *Request) callAPI(method string) (*Response, error) {
@@ -179,9 +144,33 @@ func (r *Request) callAPI(method string) (*Response, error) {
 	return rv, nil
 }
 
-func newResponse(status int, body string) *Response {
-	return &Response{
-		Status: status,
-		Body:   body,
+func (r *Request) genHTTPReq(method, epURL string) (*http.Request, error) {
+	if r.hasBody {
+
+		var bodyString *strings.Reader
+		if len(r.bodyTXT) > 0 {
+			bodyString = strings.NewReader(r.bodyTXT)
+		} else if len(r.bodyKV) > 0 {
+			form := url.Values{}
+			for _, body := range r.bodyKV {
+				form.Add(body.key, body.value)
+			}
+			bodyString = strings.NewReader(form.Encode())
+		}
+		return http.NewRequest(method, epURL, bodyString)
+	} else {
+		return http.NewRequest(method, epURL, nil)
+	}
+}
+
+func (r *Request) populateHTTPRequest(httpReq *http.Request) {
+	httpQuery := httpReq.URL.Query()
+	for _, qry := range r.queries {
+		httpQuery.Add(qry.key, qry.value)
+	}
+	httpReq.URL.RawQuery = httpQuery.Encode()
+
+	for _, hdr := range r.headers {
+		httpReq.Header.Set(hdr.key, hdr.value)
 	}
 }
