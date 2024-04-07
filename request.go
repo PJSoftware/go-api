@@ -1,12 +1,14 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 )
 
 // An individual Request is used to communicate with the external API. A Request
@@ -106,14 +108,51 @@ func (r *Request) RawQueryURL() (string, error) {
 
 // (*Request).GET() processes a GET call to the API
 func (r *Request) GET() (*Response, error) {
-	return r.callAPI("GET")
+	return r.callAPIWithTimeout("GET")
 }
 
 // (*Request).POST() processes a POST call to the API
 func (r *Request) POST() (*Response, error) {
-	return r.callAPI("POST")
+	return r.callAPIWithTimeout("POST")
 }
 
+type apiCallReturn struct {
+	r *Response
+	e error
+}
+
+// callAPIWithTimeout() handles the call using the specified method, optionally
+// implementing timeout
+func (r *Request) callAPIWithTimeout(method string) (*Response, error) {
+	if r.Options.timeout <= 0 {
+		return r.callAPI(method)
+	}
+ 
+	duration := time.Millisecond * time.Duration(r.Options.timeout)
+	ctx, cancel := context.WithTimeout(context.Background(), duration)
+	defer cancel()
+
+	// call r.CallAPI via a goroutine
+	ch := make(chan apiCallReturn)
+	go func() {
+		res, err := r.callAPI(method)
+		ch <- apiCallReturn{
+			r: res,
+			e: err,
+		}
+	}()
+
+	// wait for a value returning from our goroutine (or from ctx)
+	for {
+		select {
+		case <- ctx.Done():
+			return nil, ErrTimeout
+		case resp := <- ch:
+			return resp.r, &PackageError{resp.e}
+		}
+	}
+
+}
 
 // callAPI() handles the call using the specified method
 func (r *Request) callAPI(method string) (*Response, error) {

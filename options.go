@@ -17,8 +17,6 @@ func RateLimit(callsPerMinute int) OptFunc {
 
 // Option: Set Timeout in milliseconds. Any API calls which take longer than the
 // specified timeout will be cancelled (and return a timeout error)
-//
-// TODO: Timeout currently not implemented
 func Timeout(maxMillisecondsElapsed int) OptFunc {
 	return func(o *Options) {
 		o.timeout = maxMillisecondsElapsed
