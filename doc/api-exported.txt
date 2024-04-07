@@ -72,6 +72,8 @@ func (o *Options) Set(opts ...OptFunc)
     in which case they provide the default value for each subsequent call -- or
     they can be set on individual *Requests (via req.Options.Set())
 
+    Available options: RateLimit(n), Timeout(n)
+
 type PackageError struct {
 	// Has unexported fields.
 }

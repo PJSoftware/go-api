@@ -28,6 +28,8 @@ func Timeout(maxMillisecondsElapsed int) OptFunc {
 // Set API options. Can be set on the *APIData object (via api.Options.Set()),
 // in which case they provide the default value for each subsequent call -- or
 // they can be set on individual *Requests (via req.Options.Set())
+//
+// Available options: RateLimit(n), Timeout(n)
 func (o *Options) Set(opts ...OptFunc) {
 	for _, fn := range opts {
 		fn(o)
