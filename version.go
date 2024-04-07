@@ -2,14 +2,14 @@ package api
 
 import "fmt"
 
-const pkgVersion = "0.4.6"
+const Version = "v0.4.7"
 
 // api.Version() returns the current package version
 func (a *APIData) Version() string {
-	return pkgVersion
+	return Version
 }
 
 // api.Ident() returns an ident string based on api name, url, and package version
 func (a *APIData) Ident() string {
-	return fmt.Sprintf("go-api v%s: %s", pkgVersion, a.rootURL)
+	return fmt.Sprintf("go-api %s: %s", Version, a.rootURL)
 }

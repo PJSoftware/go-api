@@ -18,7 +18,7 @@ type Request struct {
 	bodyKV   []reqBody
 	bodyTXT  string
 	hasBody  bool
-	options  ReqOptions
+	Options  *Options
 }
 
 type reqQuery keyValuePair
@@ -37,8 +37,10 @@ type Response struct {
 
 // Initialise new empty API request on specified endpoint
 func (e *Endpoint) NewRequest() *Request {
+	opt := *e.parent.Options
 	return &Request{
 		endPoint: e,
+		Options: &opt,
 	}
 }
 
