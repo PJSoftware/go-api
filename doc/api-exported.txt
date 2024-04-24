@@ -3,7 +3,7 @@ package api // import "github.com/pjsoftware/go-api"
 
 CONSTANTS
 
-const Version = "v0.4.7"
+const Version = "v0.4.8"
 
 VARIABLES
 
@@ -15,6 +15,7 @@ var (
 	ErrClient      = errors.New("client error")
 	ErrServer      = errors.New("server error")
 )
+var ErrTimeout = fmt.Errorf("timeout duration exceeded")
 
 TYPES
 
@@ -61,8 +62,6 @@ func Timeout(maxMillisecondsElapsed int) OptFunc
     Option: Set Timeout in milliseconds. Any API calls which take longer than
     the specified timeout will be cancelled (and return a timeout error)
 
-    TODO: Timeout currently not implemented
-
 type Options struct {
 	// Has unexported fields.
 }
@@ -108,6 +107,12 @@ func (r *Request) AddHeader(key, value string) *Request
 
 func (r *Request) AddQuery(key, value string) *Request
     Add Query (passed in GET URL) to a request
+
+func (r *Request) AddQueryBool(key string, value bool) *Request
+    AddQueryBool (passed in GET URL) adds a bool value to a request
+
+func (r *Request) AddQueryInt(key string, value int) *Request
+    AddQueryInt (passed in GET URL) adds an int value to a request
 
 func (r *Request) FormEncoded()
     FormEncoded adds a predefined (Content-Type) header to a request
