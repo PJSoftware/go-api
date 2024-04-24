@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -27,9 +28,33 @@ type reqQuery keyValuePair
 type reqHeader keyValuePair
 type reqBody keyValuePair
 
+type valueDataType int
+const (
+	vdtString valueDataType = iota
+	vdtInt
+	vdtBool
+)
+
+type valueData struct {
+	is valueDataType
+	s string
+	i int
+	b bool
+}
+
+func (v valueData) string() string {
+	var rv string
+	switch v.is {
+	case vdtString: rv = v.s
+	case vdtInt: rv = strconv.Itoa(v.i)
+	case vdtBool: rv = strconv.FormatBool(v.b)
+	}
+	return rv
+}
+
 type keyValuePair struct {
 	key   string
-	value string
+	value valueData
 }
 
 // Initialise new empty API request on specified endpoint
@@ -45,7 +70,28 @@ func (e *Endpoint) NewRequest() *Request {
 func (r *Request) AddQuery(key, value string) *Request {
 	query := reqQuery{}
 	query.key = key
-	query.value = value
+	query.value.is = vdtString
+	query.value.s = value
+	r.queries = append(r.queries, query)
+	return r
+}
+
+// AddQueryBool (passed in GET URL) adds a bool value to a request
+func (r *Request) AddQueryBool(key string, value bool) *Request {
+	query := reqQuery{}
+	query.key = key
+	query.value.is = vdtBool
+	query.value.b = value
+	r.queries = append(r.queries, query)
+	return r
+}
+
+// AddQueryInt (passed in GET URL) adds an int value to a request
+func (r *Request) AddQueryInt(key string, value int) *Request {
+	query := reqQuery{}
+	query.key = key
+	query.value.is = vdtInt
+	query.value.i = value
 	r.queries = append(r.queries, query)
 	return r
 }
@@ -54,7 +100,8 @@ func (r *Request) AddQuery(key, value string) *Request {
 func (r *Request) AddHeader(key, value string) *Request {
 	header := reqHeader{}
 	header.key = key
-	header.value = value
+	header.value.is = vdtString
+	header.value.s = value
 	r.headers = append(r.headers, header)
 	return r
 }
@@ -68,7 +115,8 @@ func (r *Request) FormEncoded() {
 func (r *Request) AddBodyKV(key, value string) *Request {
 	body := reqBody{}
 	body.key = key
-	body.value = value
+	body.value.is = vdtString
+	body.value.s = value
 	r.bodyKV = append(r.bodyKV, body)
 	r.hasBody = true
 	return r
@@ -100,7 +148,7 @@ func (r *Request) RawQueryURL() (string, error) {
 
 	httpQuery := httpReq.URL.Query()
 	for _, qry := range r.queries {
-		httpQuery.Add(qry.key, qry.value)
+		httpQuery.Add(qry.key, qry.value.string())
 	}
 	httpReq.URL.RawQuery = httpQuery.Encode()
 	return httpReq.URL.String(), nil
@@ -192,7 +240,7 @@ func (r *Request) genHTTPReq(method, epURL string) (*http.Request, error) {
 		} else if len(r.bodyKV) > 0 {
 			form := url.Values{}
 			for _, body := range r.bodyKV {
-				form.Add(body.key, body.value)
+				form.Add(body.key, body.value.string())
 			}
 			bodyString = strings.NewReader(form.Encode())
 		}
@@ -205,11 +253,11 @@ func (r *Request) genHTTPReq(method, epURL string) (*http.Request, error) {
 func (r *Request) populateHTTPRequest(httpReq *http.Request) {
 	httpQuery := httpReq.URL.Query()
 	for _, qry := range r.queries {
-		httpQuery.Add(qry.key, qry.value)
+		httpQuery.Add(qry.key, qry.value.string())
 	}
 	httpReq.URL.RawQuery = httpQuery.Encode()
 
 	for _, hdr := range r.headers {
-		httpReq.Header.Set(hdr.key, hdr.value)
+		httpReq.Header.Set(hdr.key, hdr.value.string())
 	}
 }
