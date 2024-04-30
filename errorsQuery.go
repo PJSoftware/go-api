@@ -16,11 +16,12 @@ var (
 )
 
 type QueryError struct {
+	req *Request
 	res *Response
 	err error
 }
 
-func newQueryError(res *Response) *QueryError {
+func newQueryError(res *Response, req *Request) *QueryError {
 	var err error
 	code := res.Status
 	if code == http.StatusOK {
@@ -45,6 +46,7 @@ func newQueryError(res *Response) *QueryError {
 	}
 
 	return &QueryError{
+		req: req,
 		res: res,
 		err: err,
 	}
@@ -64,6 +66,10 @@ func (qe *QueryError) Error() string {
 
 func (qe *QueryError) Response() *Response {
 	return qe.res
+}
+
+func (qe *QueryError) Request() *Request {
+	return qe.req
 }
 
 func (qe *QueryError) Status() int {

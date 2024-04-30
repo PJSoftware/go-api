@@ -87,7 +87,7 @@ func TestErrors(t *testing.T) {
 
 	t.Run("StatusOK", func(t *testing.T) {
 		res := &Response{Body: "", Status: http.StatusOK}
-		err := newQueryError(res)
+		err := newQueryError(res, nil)
 		if err != nil {
 			t.Errorf("error generated, nil expected: %v", err)
 		}
@@ -96,7 +96,7 @@ func TestErrors(t *testing.T) {
 	t.Run("100-199 status errors", func(t *testing.T) {
 		for _, code := range allKnownCodes100 {
 			res := &Response{Body: "", Status: code}
-			err := newQueryError(res)
+			err := newQueryError(res, nil)
 			if !errors.Is(err, ErrInformation) {
 				t.Errorf("for code %d, expected ErrInformation, got %v", code, err)
 			}
@@ -106,7 +106,7 @@ func TestErrors(t *testing.T) {
 	t.Run("200-299 status errors", func(t *testing.T) {
 		for _, code := range allKnownCodes200 {
 			res := &Response{Body: "", Status: code}
-			err := newQueryError(res)
+			err := newQueryError(res, nil)
 			if !errors.Is(err, ErrSuccess) {
 				t.Errorf("for code %d, expected ErrSuccess, got %v", code, err)
 			}
@@ -116,7 +116,7 @@ func TestErrors(t *testing.T) {
 	t.Run("300-399 status errors", func(t *testing.T) {
 		for _, code := range allKnownCodes300 {
 			res := &Response{Body: "", Status: code}
-			err := newQueryError(res)
+			err := newQueryError(res, nil)
 			if !errors.Is(err, ErrRedirection) {
 				t.Errorf("for code %d, expected ErrRedirection, got %v", code, err)
 			}
@@ -126,7 +126,7 @@ func TestErrors(t *testing.T) {
 	t.Run("400-499 status errors", func(t *testing.T) {
 		for _, code := range allKnownCodes400 {
 			res := &Response{Body: "", Status: code}
-			err := newQueryError(res)
+			err := newQueryError(res, nil)
 			if !errors.Is(err, ErrClient) {
 				t.Errorf("for code %d, expected ErrClient, got %v", code, err)
 			}
@@ -136,7 +136,7 @@ func TestErrors(t *testing.T) {
 	t.Run("500-599 status errors", func(t *testing.T) {
 		for _, code := range allKnownCodes500 {
 			res := &Response{Body: "", Status: code}
-			err := newQueryError(res)
+			err := newQueryError(res, nil)
 			if !errors.Is(err, ErrServer) {
 				t.Errorf("for code %d, expected ErrServer, got %v", code, err)
 			}
@@ -146,7 +146,7 @@ func TestErrors(t *testing.T) {
 	t.Run("error return values", func(t *testing.T) {
 		for _, code := range allKnownCodes100 {
 			res := &Response{Body: "", Status: code}
-			err := newQueryError(res)
+			err := newQueryError(res, nil)
 			if err.Status() != code {
 				t.Errorf("status code %d was not correctly returned by error (got %d)", code, err.Status())
 			}
@@ -156,7 +156,7 @@ func TestErrors(t *testing.T) {
 	t.Run("unsupported code handling", func(t *testing.T) {
 		for _, code := range []int{99, 601} {
 			res := &Response{Body: "", Status: code}
-			err := newQueryError(res)
+			err := newQueryError(res, nil)
 			if !errors.Is(err, ErrUnsupported) {
 				t.Errorf("for code %d, expected ErrUnsupportedRange, got %v", code, err)
 			}
