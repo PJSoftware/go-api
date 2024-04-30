@@ -225,7 +225,7 @@ func (r *Request) callAPI(method string) (*Response, error) {
 
 	rv := newResponse(res.StatusCode, string(body))
 	if rv.Status != http.StatusOK {
-		return rv, newQueryError(rv)
+		return rv, newQueryError(rv, r)
 	}
 
 	return rv, nil
