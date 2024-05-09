@@ -156,7 +156,19 @@ func (r *Request) RawQueryURL() (string, error) {
 
 // (*Request).GET() processes a GET call to the API
 func (r *Request) GET() (*Response, error) {
-	return r.callAPIWithTimeout("GET")
+	res, err := r.callAPIWithTimeout("GET")
+	if err == nil { return res, err }
+
+	// todo: check error type; is it a transient error?
+	if r.Options.retries > 0 {
+		for retry := uint(1); retry <= r.Options.retries; retry++ {
+			time.Sleep(500 * time.Millisecond)
+			res, err := r.callAPIWithTimeout("GET")
+			if err == nil { return res, err }
+		}
+	}
+
+	return res, err
 }
 
 // (*Request).POST() processes a POST call to the API

@@ -1,15 +1,16 @@
 package api
 
 type Options struct {
-	rateLimit int // rate: calls per minute
-	timeout   int // milliseconds
+	rateLimit uint // rate: calls per minute
+	timeout   uint // milliseconds
+	retries   uint // number of retries to attempt
 }
 type OptFunc func(*Options)
 
 // Option: Set Rate Limit to specified number of calls per minute
 //
 // TODO: Rate limiting currently not implemented; added to support client calls
-func RateLimit(callsPerMinute int) OptFunc {
+func RateLimit(callsPerMinute uint) OptFunc {
 	return func(o *Options) {
 		o.rateLimit = callsPerMinute
 	}
@@ -17,9 +18,22 @@ func RateLimit(callsPerMinute int) OptFunc {
 
 // Option: Set Timeout in milliseconds. Any API calls which take longer than the
 // specified timeout will be cancelled (and return a timeout error)
-func Timeout(maxMillisecondsElapsed int) OptFunc {
+func Timeout(maxMillisecondsElapsed uint) OptFunc {
 	return func(o *Options) {
 		o.timeout = maxMillisecondsElapsed
+	}
+}
+
+// Option: Set maximum allowed number of Retries. If a GET should happen to fail
+// with a transient error, it will be retried the number of times specified
+//
+// The maximum number of retries permitted is 5
+func RetriesPermitted(numRetries uint) OptFunc {
+	return func(o *Options) {
+		if numRetries > 5 {
+			numRetries = 5
+		}
+		o.retries = numRetries
 	}
 }
 
