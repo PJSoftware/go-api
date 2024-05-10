@@ -8,8 +8,8 @@ func TestAPIOptions(t *testing.T) {
 	var (
 		url = "http://test.io"
 		epURL = "test"
-		rateLim = 100
-		timeout = 500 
+		rateLim uint = 100
+		timeout uint = 500 
 	)
 
 	t.Run("DefaultOptionValues", func(t *testing.T) {
@@ -43,7 +43,7 @@ func TestAPIOptions(t *testing.T) {
 		}
 
 		// confirm that changing request options works
-		nv := 1000
+		nv := uint(1000)
 		req.Options.Set(RateLimit(nv), Timeout(nv))
 		if req.Options.rateLimit != nv {
 			t.Errorf("req rateLimit new value: got '%d' but expected '%d'", req.Options.rateLimit, nv)
