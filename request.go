@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -159,11 +160,15 @@ func (r *Request) GET() (*Response, error) {
 	res, err := r.callAPIWithTimeout("GET")
 	if err == nil { return res, err }
 
-	// todo: check error type; is it a transient error?
 	if r.Options.retries > 0 {
 		for retry := uint(1); retry <= r.Options.retries; retry++ {
+			if !strings.Contains(err.Error(), "unexpected EOF") {
+				return nil, err
+			}
+
+			log.Printf("go-api: unexpected EOF error; retry %d/%d (%v)", retry, r.Options.retries, err)
 			time.Sleep(500 * time.Millisecond)
-			res, err := r.callAPIWithTimeout("GET")
+			res, err = r.callAPIWithTimeout("GET")
 			if err == nil { return res, err }
 		}
 	}
