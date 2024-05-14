@@ -22,3 +22,8 @@ tasks:
       - ./*.go
     cmds:
       - go test ./*.go
+
+  send-json:
+    desc: "Run test/send-json"
+    cmds:
+      - go run ./test/send-json/
