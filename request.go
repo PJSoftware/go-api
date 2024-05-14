@@ -5,12 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
 	"time"
+
+	log "github.com/pjsoftware/go-logging"
 )
 
 // An individual Request is used to communicate with the external API. A Request
@@ -166,7 +167,7 @@ func (r *Request) GET() (*Response, error) {
 				return nil, err
 			}
 
-			log.Printf("go-api: unexpected EOF error; retry %d/%d (%v)", retry, r.Options.retries, err)
+			log.Lib(libName).Printf("go-api: unexpected EOF error; retry %d/%d (%v)", retry, r.Options.retries, err)
 			time.Sleep(500 * time.Millisecond)
 			res, err = r.callAPIWithTimeout("GET")
 			if err == nil { return res, err }

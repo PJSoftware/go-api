@@ -3,7 +3,8 @@ package main
 import (
 	"errors"
 	"fmt"
-	"log"
+
+	log "github.com/pjsoftware/go-logging"
 
 	goapi "github.com/pjsoftware/go-api"
 )
@@ -14,6 +15,7 @@ type Object struct {
 }
 
 func main() {
+	log.InitLog(log.WindowsRootFolder, "send-json")
 	api := goapi.New("https://ZZZZZ.wiremockapi.cloud")
 
 	getJSON(api)
