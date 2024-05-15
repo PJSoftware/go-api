@@ -1,6 +1,6 @@
 = go-api
 Peter Jones <pjsoftware@petesplace.id.au>
-:version: v0.4.12
+:version: v0.4.13
 
 == Go API Module ({version})
 

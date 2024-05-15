@@ -10,8 +10,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	log "github.com/pjsoftware/go-logging"
 )
 
 // An individual Request is used to communicate with the external API. A Request
@@ -145,7 +143,7 @@ func (r *Request) RawQueryURL() (string, error) {
 	epURL := r.endPoint.URL()
 	httpReq, err := http.NewRequest("GET", epURL, nil)
 	if err != nil {
-		return "", &PackageError{err}
+		return "", errLog(&PackageError{err})
 	}
 
 	httpQuery := httpReq.URL.Query()
@@ -159,22 +157,22 @@ func (r *Request) RawQueryURL() (string, error) {
 // (*Request).GET() processes a GET call to the API
 func (r *Request) GET() (*Response, error) {
 	res, err := r.callAPIWithTimeout("GET")
-	if err == nil { return res, err }
+	if err == nil { return res, nil }
 
 	if r.Options.retries > 0 {
 		for retry := uint(1); retry <= r.Options.retries; retry++ {
 			if !strings.Contains(err.Error(), "unexpected EOF") {
-				return nil, err
+				return nil, errLog(err)
 			}
 
-			log.Lib(libName).Printf("go-api: unexpected EOF error; retry %d/%d (%v)", retry, r.Options.retries, err)
+			apiLogger.Info(fmt.Sprintf("go-api: unexpected EOF error; retry %d/%d (%v)", retry, r.Options.retries, err))
 			time.Sleep(500 * time.Millisecond)
 			res, err = r.callAPIWithTimeout("GET")
-			if err == nil { return res, err }
+			if err == nil { return res, nil }
 		}
 	}
 
-	return res, err
+	return res, errLog(err)
 }
 
 // (*Request).POST() processes a POST call to the API
@@ -214,7 +212,7 @@ func (r *Request) callAPIWithTimeout(method string) (*Response, error) {
 		case <- ctx.Done():
 			return nil, ErrTimeout
 		case resp := <- ch:
-			return resp.r, &PackageError{resp.e}
+			return resp.r, errLog(&PackageError{resp.e})
 		}
 	}
 
@@ -226,33 +224,36 @@ func (r *Request) callAPI(method string) (*Response, error) {
 	httpClient := http.Client{}
 	httpReq, err := r.genHTTPReq(method, epURL)
 	if err != nil {
-		return nil, &PackageError{fmt.Errorf("error in %s(): creating *http.Request: %w", method, err)}
+		return nil, errLog(&PackageError{fmt.Errorf("error in %s(): creating *http.Request: %w", method, err)})
 	}
 
 	r.populateHTTPRequest(httpReq)
 	res, err := httpClient.Do(httpReq)
 	if err != nil {
-		return nil, &PackageError{fmt.Errorf("error in %s(): communicating with api: %w", method, err)}
+		return nil, errLog(&PackageError{fmt.Errorf("error in %s(): communicating with api: %w", method, err)})
 	}
 	defer res.Body.Close()
 
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
-		return nil, &PackageError{fmt.Errorf("error in %s(): reading body of response: %w", method, err)}
+		return nil, errLog(&PackageError{fmt.Errorf("error in %s(): reading body of response: %w", method, err)})
 	}
 
 	rv := newResponse(res.StatusCode, string(body))
 	if rv.Status != http.StatusOK {
-		return rv, newQueryError(rv, r)
+		return rv, errLog(newQueryError(rv, r))
 	}
 
 	return rv, nil
 }
 
 func (r *Request) genHTTPReq(method, epURL string) (*http.Request, error) {
-	if r.hasBody {
+	var hReq *http.Request
+	var err error
 
-		var bodyString *strings.Reader
+
+	if r.hasBody {
+		var bodyString *strings.Reader = nil
 		if len(r.bodyTXT) > 0 {
 			bodyString = strings.NewReader(r.bodyTXT)
 		} else if len(r.bodyKV) > 0 {
@@ -262,10 +263,14 @@ func (r *Request) genHTTPReq(method, epURL string) (*http.Request, error) {
 			}
 			bodyString = strings.NewReader(form.Encode())
 		}
-		return http.NewRequest(method, epURL, bodyString)
+		hReq, err = http.NewRequest(method, epURL, bodyString)
+
 	} else {
-		return http.NewRequest(method, epURL, nil)
+		hReq, err = http.NewRequest(method, epURL, nil)
+	
 	}
+
+	return hReq, errLog(err)
 }
 
 func (r *Request) populateHTTPRequest(httpReq *http.Request) {
