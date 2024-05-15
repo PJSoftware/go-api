@@ -172,7 +172,7 @@ func (r *Request) GET() (*Response, error) {
 		}
 	}
 
-	return res, err
+	return res, errLog(err)
 }
 
 // (*Request).POST() processes a POST call to the API
@@ -248,9 +248,9 @@ func (r *Request) callAPI(method string) (*Response, error) {
 }
 
 func (r *Request) genHTTPReq(method, epURL string) (*http.Request, error) {
-	if r.hasBody {
+	var bodyString *strings.Reader = nil
 
-		var bodyString *strings.Reader
+	if r.hasBody {
 		if len(r.bodyTXT) > 0 {
 			bodyString = strings.NewReader(r.bodyTXT)
 		} else if len(r.bodyKV) > 0 {
@@ -260,10 +260,10 @@ func (r *Request) genHTTPReq(method, epURL string) (*http.Request, error) {
 			}
 			bodyString = strings.NewReader(form.Encode())
 		}
-		return http.NewRequest(method, epURL, bodyString)
-	} else {
-		return http.NewRequest(method, epURL, nil)
 	}
+		
+	hReq, err := http.NewRequest(method, epURL, bodyString)
+	return hReq, errLog(err)
 }
 
 func (r *Request) populateHTTPRequest(httpReq *http.Request) {

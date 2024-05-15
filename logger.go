@@ -12,6 +12,9 @@ func init() {
 }
 
 func errLog(err error) error {
-	apiLogger.Error("error", "err", err.Error())
+	if err != nil {
+		apiLogger.Error("error", "err", err)
+	}
+	
 	return err
 }
