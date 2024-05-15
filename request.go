@@ -248,9 +248,12 @@ func (r *Request) callAPI(method string) (*Response, error) {
 }
 
 func (r *Request) genHTTPReq(method, epURL string) (*http.Request, error) {
-	var bodyString *strings.Reader = nil
+	var hReq *http.Request
+	var err error
+
 
 	if r.hasBody {
+		var bodyString *strings.Reader = nil
 		if len(r.bodyTXT) > 0 {
 			bodyString = strings.NewReader(r.bodyTXT)
 		} else if len(r.bodyKV) > 0 {
@@ -260,9 +263,13 @@ func (r *Request) genHTTPReq(method, epURL string) (*http.Request, error) {
 			}
 			bodyString = strings.NewReader(form.Encode())
 		}
+		hReq, err = http.NewRequest(method, epURL, bodyString)
+
+	} else {
+		hReq, err = http.NewRequest(method, epURL, nil)
+	
 	}
-		
-	hReq, err := http.NewRequest(method, epURL, bodyString)
+
 	return hReq, errLog(err)
 }
 
