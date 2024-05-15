@@ -3,7 +3,7 @@ package api // import "github.com/pjsoftware/go-api"
 
 CONSTANTS
 
-const Version = "v0.4.12"
+const Version = "v0.4.13"
 
 VARIABLES
 
