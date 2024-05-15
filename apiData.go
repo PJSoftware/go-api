@@ -2,8 +2,6 @@ package api
 
 import "strings"
 
-const libName = "go-api"
-
 // APIData is the main export from go-api; it is generated via api.New()
 type APIData struct {
 	rootURL string
