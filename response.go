@@ -2,10 +2,10 @@ package api
 
 type Response struct {
 	Status int
-	Body   string
+	Body   []byte
 }
 
-func newResponse(status int, body string) *Response {
+func newResponse(status int, body []byte) *Response {
 	return &Response{
 		Status: status,
 		Body:   body,
