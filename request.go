@@ -1,6 +1,7 @@
 package api
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -19,7 +20,7 @@ type Request struct {
 	queries  []reqQuery
 	headers  []reqHeader
 	bodyKV   []reqBody
-	bodyTXT  string
+	bodyTXT  []byte
 	hasBody  bool
 	Options  *Options
 }
@@ -131,7 +132,7 @@ func (r *Request) SetBodyJSON(v any) *Request {
 		return nil
 	}
 
-	r.bodyTXT = string(b)
+	r.bodyTXT = b
 	r.hasBody = true
 	return r
 }
@@ -191,7 +192,7 @@ func (r *Request) callAPIWithTimeout(method string) (*Response, error) {
 	if r.Options.timeout <= 0 {
 		return r.callAPI(method)
 	}
- 
+
 	duration := time.Millisecond * time.Duration(r.Options.timeout)
 	ctx, cancel := context.WithTimeout(context.Background(), duration)
 	defer cancel()
@@ -239,7 +240,7 @@ func (r *Request) callAPI(method string) (*Response, error) {
 		return nil, errLog(&PackageError{fmt.Errorf("error in %s(): reading body of response: %w", method, err)})
 	}
 
-	rv := newResponse(res.StatusCode, string(body))
+	rv := newResponse(res.StatusCode, body)
 	if rv.Status != http.StatusOK {
 		return rv, errLog(newQueryError(rv, r))
 	}
@@ -251,17 +252,16 @@ func (r *Request) genHTTPReq(method, epURL string) (*http.Request, error) {
 	var hReq *http.Request
 	var err error
 
-
 	if r.hasBody {
-		var bodyString *strings.Reader = nil
+		var bodyString *bytes.Reader = nil
 		if len(r.bodyTXT) > 0 {
-			bodyString = strings.NewReader(r.bodyTXT)
+			bodyString = bytes.NewReader(r.bodyTXT)
 		} else if len(r.bodyKV) > 0 {
 			form := url.Values{}
 			for _, body := range r.bodyKV {
 				form.Add(body.key, body.value.string())
 			}
-			bodyString = strings.NewReader(form.Encode())
+			bodyString = bytes.NewReader([]byte(form.Encode()))
 		}
 		hReq, err = http.NewRequest(method, epURL, bodyString)
 
