@@ -1,11 +1,24 @@
 package api
 
+import (
+	"fmt"
+	"strings"
+)
+
 type Options struct {
 	rateLimit uint // rate: calls per minute
 	timeout   uint // milliseconds
 	retries   uint // number of retries to attempt
 }
 type OptFunc func(*Options)
+
+func (o *Options) string() string {
+	rv := []string{}
+	if o.rateLimit > 0 { rv = append(rv, fmt.Sprintf("rateLimit: %d", o.rateLimit)) }
+	if o.timeout > 0   { rv = append(rv, fmt.Sprintf("timeout: %d", o.timeout)) }
+	if o.retries > 0   { rv = append(rv, fmt.Sprintf("retries: %d", o.retries)) }
+	return strings.Join(rv, ",")
+}
 
 // Option: Set Rate Limit to specified number of calls per minute
 //
