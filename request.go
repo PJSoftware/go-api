@@ -17,17 +17,53 @@ import (
 // is generated via (*Endpoint).NewRequest()
 type Request struct {
 	endPoint *Endpoint
-	queries  []reqQuery
-	headers  []reqHeader
-	bodyKV   []reqBody
+	queries  []keyValuePair
+	headers  []keyValuePair
+	bodyKV   []keyValuePair
 	bodyTXT  []byte
 	hasBody  bool
 	Options  *Options
 }
 
-type reqQuery keyValuePair
-type reqHeader keyValuePair
-type reqBody keyValuePair
+func (r *Request) String() string {
+	rv := []string{}
+	rv = append(rv, "endPoint: '" + r.endPoint.URL())
+
+	if len(r.headers) > 0 {
+		lst := []string{}
+		for _, kvp := range r.headers {
+			lst = append(lst, kvp.string())
+		}
+		rv = append(rv, "headers:(" + strings.Join(lst, ","))
+	}
+
+	if len(r.queries) > 0 {
+		lst := []string{}
+		for _, kvp := range r.queries {
+			lst = append(lst, kvp.string())
+		}
+		rv = append(rv, "queries:(" + strings.Join(lst, ","))
+	}
+
+	if len(r.bodyKV) > 0 {
+		lst := []string{}
+		for _, kvp := range r.bodyKV {
+			lst = append(lst, kvp.string())
+		}
+		rv = append(rv, "body_kvp:(" + strings.Join(lst, ",") + ")")
+	}
+
+	if len(r.bodyTXT) > 0 {
+		rv = append(rv, "body: '" + string(r.bodyTXT) + "'")
+	}
+
+	opt := r.Options.string()
+	if opt != "" {
+		rv = append(rv, "options:(" + opt + ")")
+	}
+	
+	return "Request:{" + strings.Join(rv, ";") + "}"
+}
 
 type valueDataType int
 const (
@@ -58,6 +94,10 @@ type keyValuePair struct {
 	value valueData
 }
 
+func (kv keyValuePair) string() string {
+	return fmt.Sprintf("['%s': '%s']", kv.key, kv.value.string())
+}
+
 // Initialise new empty API request on specified endpoint
 func (e *Endpoint) NewRequest() *Request {
 	opt := *e.parent.Options
@@ -69,7 +109,7 @@ func (e *Endpoint) NewRequest() *Request {
 
 // Add Query (passed in GET URL) to a request
 func (r *Request) AddQuery(key, value string) *Request {
-	query := reqQuery{}
+	query := keyValuePair{}
 	query.key = key
 	query.value.is = vdtString
 	query.value.s = value
@@ -79,7 +119,7 @@ func (r *Request) AddQuery(key, value string) *Request {
 
 // AddQueryBool (passed in GET URL) adds a bool value to a request
 func (r *Request) AddQueryBool(key string, value bool) *Request {
-	query := reqQuery{}
+	query := keyValuePair{}
 	query.key = key
 	query.value.is = vdtBool
 	query.value.b = value
@@ -89,7 +129,7 @@ func (r *Request) AddQueryBool(key string, value bool) *Request {
 
 // AddQueryInt (passed in GET URL) adds an int value to a request
 func (r *Request) AddQueryInt(key string, value int) *Request {
-	query := reqQuery{}
+	query := keyValuePair{}
 	query.key = key
 	query.value.is = vdtInt
 	query.value.i = value
@@ -99,7 +139,7 @@ func (r *Request) AddQueryInt(key string, value int) *Request {
 
 // Add Header to a request
 func (r *Request) AddHeader(key, value string) *Request {
-	header := reqHeader{}
+	header := keyValuePair{}
 	header.key = key
 	header.value.is = vdtString
 	header.value.s = value
@@ -114,7 +154,7 @@ func (r *Request) FormEncoded() {
 
 // Add a line (in "key=value" format) to the Body of a request
 func (r *Request) AddBodyKV(key, value string) *Request {
-	body := reqBody{}
+	body := keyValuePair{}
 	body.key = key
 	body.value.is = vdtString
 	body.value.s = value
