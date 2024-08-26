@@ -52,7 +52,10 @@ func (ep *Endpoint) URL() string {
 }
 
 func (ep *Endpoint) SetRateLimit(numberOfCalls int, inDuration time.Duration) {
-	ep.rateLimiter = newRateLimiter(numberOfCalls,inDuration)
+	// For now, ignore any possible changes to rateLimiter
+	if ep.rateLimiter == nil {
+		ep.rateLimiter = newRateLimiter(numberOfCalls,inDuration)
+	}
 }
 
 func (ep *Endpoint) waitForAvailability() {
