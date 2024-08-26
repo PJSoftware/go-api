@@ -1,42 +1,54 @@
 package api
 
 import (
-	"context"
 	"time"
 )
 
-const rateLimit = time.Second / 10  // 10 calls per second
+// To rate-limit a particular endpoint, we need to know how many calls are
+// allowed per unit of time: N calls per T time; eg, 100 calls per minute.
+//
+// If we pre-fill a queue (a bucket) with N tokens, we can then do this:
+//
+// - If we need to make a call, check the bucket
+// - If there is no token, add the requested call to a queue.
+// - If there is a token available:
+//   - Remove the token.
+//   - Allow the call.
+//   - Start a timer; after T time, add a new token to the bucket.
+//
+// Note that many implementations talk about adding N tokens per T to the bucket
+// at a fixed rate -- but if we fire off N tokens in the first second (in a burst)
+// and then add a new token to the bucket after N/T time, this would allow a new
+// call to be sent (N+1 calls) within the T window of time.
+//
+// This is not what we want.
+//
+// If we define our bucket as a (buffered) channel of size n, then we can write
+// a value to the bucket every time we request a token. If our bucket is full,
+// this will automatically block until a value is removed from the channel. The
+// goroutine which we fire off then only needs to read from the channel after T
+// time has passed; this should automatically remove our block!
 
-// Client is an interface that calls something with a payload.
-type Client interface {
-  Call(*Payload)
+// rateLimiter allows N calls per T time
+type rateLimiter struct {
+	n int
+	t time.Duration
+	bucket chan bool
 }
 
-// Payload is some payload a Client would send in a call.
-type Payload struct {}
+func newRateLimiter(n int, t time.Duration) *rateLimiter {
+	rl := rateLimiter{
+		n: n,
+		t: t,
+		bucket: make(chan bool, n),
+	}
+	return &rl
+}
 
-// BurstRateLimitCall allows burst rate limiting client calls with the
-// payloads.
-func BurstRateLimitCall(ctx context.Context, client Client, payloads []*Payload, burstLimit int) {
-  throttle := make(chan time.Time, burstLimit)
-
-  ctx, cancel := context.WithCancel(ctx)
-  defer cancel()
-
-  go func() {
-    ticker := time.NewTicker(rateLimit)
-    defer ticker.Stop()
-    for t := range ticker.C {
-        select {
-        case throttle <- t:
-        case <-ctx.Done():
-            return // exit goroutine when surrounding function returns
-        }
-    }
-  }()
-
-  for _, payload := range payloads {
-    <-throttle  // rate limit our client calls
-    go client.Call(payload)
-  }
+func (rl *rateLimiter) requestToken() {
+	rl.bucket <- true // block if bucket is full
+	go func() {
+		time.Sleep(rl.t)
+		<- rl.bucket
+	}()
 }

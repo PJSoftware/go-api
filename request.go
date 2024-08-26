@@ -229,6 +229,7 @@ type apiCallReturn struct {
 // callAPIWithTimeout() handles the call using the specified method, optionally
 // implementing timeout
 func (r *Request) callAPIWithTimeout(method string) (*Response, error) {
+	r.endPoint.waitForAvailability()
 	if r.Options.timeout <= 0 {
 		return r.callAPI(method)
 	}

@@ -1,6 +1,9 @@
 package api
 
-import "strings"
+import (
+	"strings"
+	"time"
+)
 
 // Because we probably want to apply rate limiting to our API at the endpoint
 // level, we need to cache our endpoints. Code which calls NewEndpoint()
@@ -13,6 +16,7 @@ var epCache = make(map[string]*Endpoint)
 type Endpoint struct {
 	endpointURL string
 	parent      *APIData
+	rateLimiter *rateLimiter
 }
 
 // epCacheKey() generates a key for our endpoint cache.
@@ -36,12 +40,25 @@ func (a *APIData) NewEndpoint(epURL string) *Endpoint {
 	ep := Endpoint{}
 	ep.endpointURL = epURL
 	ep.parent = a
+	ep.rateLimiter = nil
 
 	epCache[epCacheKey] = &ep
 	return &ep
 }
 
 // (*Endpoint).URL() returns the full URL for that endpoint
-func (e *Endpoint) URL() string {
-	return e.parent.rootURL + "/" + e.endpointURL
+func (ep *Endpoint) URL() string {
+	return ep.parent.rootURL + "/" + ep.endpointURL
+}
+
+func (ep *Endpoint) SetRateLimit(numberOfCalls int, inDuration time.Duration) {
+	ep.rateLimiter = newRateLimiter(numberOfCalls,inDuration)
+}
+
+func (ep *Endpoint) waitForAvailability() {
+	if ep.rateLimiter == nil {
+		return
+	}
+
+	ep.rateLimiter.requestToken()
 }
