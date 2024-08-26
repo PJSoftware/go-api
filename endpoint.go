@@ -17,6 +17,7 @@ type Endpoint struct {
 	endpointURL string
 	parent      *APIData
 	rateLimiter *rateLimiter
+	rlCacheKey  string    
 }
 
 // epCacheKey() generates a key for our endpoint cache.
@@ -41,9 +42,23 @@ func (a *APIData) NewEndpoint(epURL string) *Endpoint {
 	ep.endpointURL = epURL
 	ep.parent = a
 	ep.rateLimiter = nil
+	ep.rlCacheKey = epCacheKey
 
 	epCache[epCacheKey] = &ep
 	return &ep
+}
+
+// SetActualURL may be required when the endpoint contains sub-identifiers, if
+// the rate limiting applies to all of them. For instance, if the rate limiting
+// applies to example.com/ep1/{file-id}, you should use the generic value to
+// generate the initial EP, then use SetActualURL("ep1/0x123ABC99") to specify
+// the correct URL to use.
+// 
+// This approach will almost certainly change, but it's a good start for now.
+func (ep *Endpoint) SetActualURL(epURL string) {
+	epURL = strings.TrimPrefix(epURL, ep.parent.rootURL)
+	epURL = strings.TrimPrefix(epURL, "/")
+	ep.endpointURL = epURL
 }
 
 // (*Endpoint).URL() returns the full URL for that endpoint
