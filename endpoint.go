@@ -3,6 +3,8 @@ package api
 import (
 	"strings"
 	"time"
+
+	limiter "github.com/pjsoftware/go-rate-limiter"
 )
 
 // Because we probably want to apply rate limiting to our API at the endpoint
@@ -16,7 +18,7 @@ var epCache = make(map[string]*Endpoint)
 type Endpoint struct {
 	endpointURL string
 	parent      *APIData
-	rateLimiter *rateLimiter
+	rateLimiter *limiter.RateLimiter
 	rlCacheKey  string    
 }
 
@@ -69,7 +71,7 @@ func (ep *Endpoint) URL() string {
 func (ep *Endpoint) SetRateLimit(numberOfCalls int, inDuration time.Duration) {
 	// For now, ignore any possible changes to rateLimiter
 	if ep.rateLimiter == nil {
-		ep.rateLimiter = newRateLimiter(numberOfCalls,inDuration)
+		ep.rateLimiter = limiter.NewBurstRateLimiter(numberOfCalls,inDuration)
 	}
 }
 
@@ -78,5 +80,5 @@ func (ep *Endpoint) waitForAvailability() {
 		return
 	}
 
-	ep.rateLimiter.requestToken()
+	ep.rateLimiter.RequestToken()
 }
