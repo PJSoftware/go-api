@@ -169,6 +169,7 @@ func (r *Request) AddBodyKV(key, value string) *Request {
 func (r *Request) SetBodyJSON(v any) *Request {
 	b, err := json.Marshal(v)
 	if err != nil {
+		apiLogger.Error(err.Error())
 		return nil
 	}
 
@@ -261,32 +262,32 @@ func (r *Request) callAPIWithTimeout(method string) (*Response, error) {
 }
 
 // callAPI() handles the call using the specified method
-func (r *Request) callAPI(method string) (*Response, error) {
-	epURL := r.endPoint.URL()
+func (req *Request) callAPI(method string) (*Response, error) {
+	epURL := req.endPoint.URL()
 	httpClient := http.Client{}
-	httpReq, err := r.genHTTPReq(method, epURL)
+	httpReq, err := req.genHTTPReq(method, epURL)
 	if err != nil {
 		return nil, errLog(&PackageError{fmt.Errorf("error in %s(): creating *http.Request: %w", method, err)})
 	}
 
-	r.populateHTTPRequest(httpReq)
-	res, err := httpClient.Do(httpReq)
+	req.populateHTTPRequest(httpReq)
+	httpRes, err := httpClient.Do(httpReq)
 	if err != nil {
 		return nil, errLog(&PackageError{fmt.Errorf("error in %s(): communicating with api: %w", method, err)})
 	}
-	defer res.Body.Close()
+	defer httpRes.Body.Close()
 
-	body, err := io.ReadAll(res.Body)
+	body, err := io.ReadAll(httpRes.Body)
 	if err != nil {
 		return nil, errLog(&PackageError{fmt.Errorf("error in %s(): reading body of response: %w", method, err)})
 	}
 
-	rv := newResponse(res.StatusCode, body)
-	if rv.Status != http.StatusOK {
-		return rv, errLog(newQueryError(rv, r))
+	res := newResponse(httpRes, body)
+	if res.HTTP.StatusCode != http.StatusOK {
+		return res, errLog(newQueryError(res, req))
 	}
 
-	return rv, nil
+	return res, nil
 }
 
 func (r *Request) genHTTPReq(method, epURL string) (*http.Request, error) {

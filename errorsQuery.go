@@ -23,7 +23,7 @@ type QueryError struct {
 
 func newQueryError(res *Response, req *Request) *QueryError {
 	var err error
-	code := res.Status
+	code := res.HTTP.StatusCode
 	if code == http.StatusOK {
 		return nil
 	}
@@ -57,11 +57,11 @@ func (qe *QueryError) Unwrap() error {
 }
 
 func (qe *QueryError) Error() string {
-	txt := http.StatusText(qe.res.Status)
+	txt := http.StatusText(qe.res.HTTP.StatusCode)
 	if txt == "" {
-		return fmt.Sprintf("status %d: %v", qe.res.Status, qe.err)
+		return fmt.Sprintf("status %d: %v", qe.res.HTTP.StatusCode, qe.err)
 	}
-	return fmt.Sprintf("status %d (%s): %v", qe.res.Status, http.StatusText(qe.res.Status), qe.err)
+	return fmt.Sprintf("status %d (%s): %v", qe.res.HTTP.StatusCode, txt, qe.err)
 }
 
 func (qe *QueryError) Response() *Response {
@@ -73,5 +73,5 @@ func (qe *QueryError) Request() *Request {
 }
 
 func (qe *QueryError) Status() int {
-	return qe.res.Status
+	return qe.res.HTTP.StatusCode
 }
