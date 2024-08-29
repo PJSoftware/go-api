@@ -1,19 +1,22 @@
 package api
 
-import "fmt"
+import (
+	"fmt"
+	"net/http"
+)
 
 type Response struct {
-	Status int
-	Body   []byte
+	HTTP *http.Response
+	Body []byte
 }
 
-func newResponse(status int, body []byte) *Response {
+func newResponse(httpRes *http.Response, body []byte) *Response {
 	return &Response{
-		Status: status,
-		Body:   body,
+		HTTP: httpRes,
+		Body: body,
 	}
 }
 
 func (r *Response) String() string {
-	return fmt.Sprintf("status: %d; body: '%s'", r.Status, r.Body)
+	return fmt.Sprintf("status: %d; body: '%s'", r.HTTP.StatusCode, r.Body)
 }
