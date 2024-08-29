@@ -6,17 +6,17 @@ import (
 )
 
 type Response struct {
-	HTTP *http.Response
+	HTTPResponse *http.Response
 	Body []byte
 }
 
 func newResponse(httpRes *http.Response, body []byte) *Response {
 	return &Response{
-		HTTP: httpRes,
+		HTTPResponse: httpRes,
 		Body: body,
 	}
 }
 
 func (r *Response) String() string {
-	return fmt.Sprintf("status: %d; body: '%s'", r.HTTP.StatusCode, r.Body)
+	return fmt.Sprintf("status: %d; body: '%s'", r.HTTPResponse.StatusCode, r.Body)
 }

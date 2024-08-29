@@ -283,7 +283,7 @@ func (req *Request) callAPI(method string) (*Response, error) {
 	}
 
 	res := newResponse(httpRes, body)
-	if res.HTTP.StatusCode != http.StatusOK {
+	if res.HTTPResponse.StatusCode != http.StatusOK {
 		return res, errLog(newQueryError(res, req))
 	}
 

@@ -35,7 +35,7 @@ func getJSON(api *goapi.APIData) {
 		log.Fatalf("GET error: %v", err)
 	}
 
-	fmt.Printf("RESPONSE STATUS: %v\n", res.HTTP.StatusCode)
+	fmt.Printf("RESPONSE STATUS: %v\n", res.HTTPResponse.StatusCode)
 	fmt.Printf("RESPONSE BODY: %v\n", res.Body)
 }
 
@@ -59,6 +59,6 @@ func postJSON(api *goapi.APIData) {
 		}
 	}
 
-	fmt.Printf("RESPONSE STATUS: %v\n", res.HTTP.StatusCode)
+	fmt.Printf("RESPONSE STATUS: %v\n", res.HTTPResponse.StatusCode)
 	fmt.Printf("RESPONSE BODY: %v\n", res.Body)
 }

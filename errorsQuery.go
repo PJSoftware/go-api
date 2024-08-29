@@ -23,7 +23,7 @@ type QueryError struct {
 
 func newQueryError(res *Response, req *Request) *QueryError {
 	var err error
-	code := res.HTTP.StatusCode
+	code := res.HTTPResponse.StatusCode
 	if code == http.StatusOK {
 		return nil
 	}
@@ -45,6 +45,8 @@ func newQueryError(res *Response, req *Request) *QueryError {
 		err = ErrUnsupported
 	}
 
+	apiLogger.Error(fmt.Sprintf("go-api query error: request: %+v", *req))
+	apiLogger.Error(fmt.Sprintf("go-api query error: response: %+v", *res.HTTPResponse))
 	return &QueryError{
 		req: req,
 		res: res,
@@ -57,11 +59,11 @@ func (qe *QueryError) Unwrap() error {
 }
 
 func (qe *QueryError) Error() string {
-	txt := http.StatusText(qe.res.HTTP.StatusCode)
+	txt := http.StatusText(qe.res.HTTPResponse.StatusCode)
 	if txt == "" {
-		return fmt.Sprintf("status %d: %v", qe.res.HTTP.StatusCode, qe.err)
+		return fmt.Sprintf("status %d: %v", qe.res.HTTPResponse.StatusCode, qe.err)
 	}
-	return fmt.Sprintf("status %d (%s): %v", qe.res.HTTP.StatusCode, txt, qe.err)
+	return fmt.Sprintf("status %d (%s): %v", qe.res.HTTPResponse.StatusCode, txt, qe.err)
 }
 
 func (qe *QueryError) Response() *Response {
@@ -73,5 +75,5 @@ func (qe *QueryError) Request() *Request {
 }
 
 func (qe *QueryError) Status() int {
-	return qe.res.HTTP.StatusCode
+	return qe.res.HTTPResponse.StatusCode
 }
