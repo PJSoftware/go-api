@@ -3,7 +3,7 @@ package api
 import "fmt"
 
 const pkgName = "go-api"
-const pkgVersion = "v0.4.20"
+const pkgVersion = "v0.4.21"
 
 // api.Version() returns the current package version
 func (a *APIData) Version() string {
