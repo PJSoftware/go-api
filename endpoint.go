@@ -7,12 +7,6 @@ import (
 	limiter "github.com/pjsoftware/go-rate-limiter"
 )
 
-// Because we probably want to apply rate limiting to our API at the endpoint
-// level, we need to cache our endpoints. Code which calls NewEndpoint()
-// multiple times needs to return the same Endpoint object every time, so that
-// its limiting (etc) can apply correctly across the lifetime of the program.
-var epCache = make(map[string]*Endpoint)
-
 // Each Endpoint should be individually managed by the client code. An Endpoint
 // is generated via api.NewEndpoint()
 type Endpoint struct {
@@ -36,7 +30,7 @@ func (a *APIData) NewEndpoint(epURL string) *Endpoint {
 	epURL = strings.TrimPrefix(epURL, "/")
 
 	epCacheKey := a.epCacheKey(epURL)
-	if ep, ok := epCache[epCacheKey]; ok {
+	if ep := epCache.ValueOf(epCacheKey); ep != nil {
 		return ep
 	}
 
@@ -46,7 +40,7 @@ func (a *APIData) NewEndpoint(epURL string) *Endpoint {
 	ep.rateLimiter = nil
 	ep.rlCacheKey = epCacheKey
 
-	epCache[epCacheKey] = &ep
+	epCache.Store(epCacheKey, &ep)
 	return &ep
 }
 
